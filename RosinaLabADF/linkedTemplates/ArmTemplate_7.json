@@ -1,0 +1,2016 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesforceV2 test CONVERTCURRENCY')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data V2 noAlias",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT Id, CONVERTCURRENCY(Amount) FROM Opportunity",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V1 noAlias",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceSource",
+								"query": "SELECT Id, CONVERTCURRENCY(Amount) Amount_new FROM Opportunity",
+								"readBehavior": "query"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTestV1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V1.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V2 AliasSame",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT Id, CONVERTCURRENCY(Amount) Amount FROM Opportunity",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2_AliasSame.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V2 AliasDif",
+						"description": "SELECT \nId, \nCONVERTCURRENCY(Total_ACV__c), \nCONVERTCURRENCY(Total_ACV__c) Total_ACV__c_new, \nFORMAT(CONVERTCURRENCY(Total_ACV__c)) Formated_Total_ACV__c_new \nFROM Opportunity\nWHERE SystemModstamp > 2025-05-26T07:00:00Z",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT \nId, \nCONVERTCURRENCY(Total_ACV__c), \nCONVERTCURRENCY(Total_ACV__c) columnnew, \nFORMAT(CONVERTCURRENCY(Total_ACV__c)) Formated_Total_ACV__c_new \nFROM Opportunity\nWHERE Total_ACV__c != null",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2_AliasDif.csv"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesforceV2 test Format')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data V2 noAlias",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy data V1 noAlias",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT Id, FORMAT(CreatedDate), TimeType__c FROM TimeTest__c",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V1 noAlias",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceSource",
+								"query": "SELECT Id, FORMAT(CreatedDate), TimeType__c FROM TimeTest__c",
+								"readBehavior": "query"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTestV1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V1.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V2 AliasSame",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT Id, FORMAT(CreatedDate) CreatedDate, TimeType__c FROM TimeTest__c",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2_AliasSame.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy data V2 AliasDif",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SalesforceV2Source",
+								"query": "SELECT \nId, \nFORMAT(CreatedDate) createddate_formated, \nFORMAT(CreatedDate) createddate_formatedA,\nFORMAT(CreatedDate) createddate\nFROM TimeTest__c",
+								"includeDeletedObjects": false
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SalesforceObjectTest",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_Salesforce_V2_AliasDif.csv"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TEST Dataflow')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Parse_GraphApiResponse",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"integrationRuntime": {
+								"referenceName": "ManagedVNetIR",
+								"type": "IntegrationRuntimeReference"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"concurrency": 2,
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"aaa": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Web - File share REST with OAuth2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Web1",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/token",
+							"body": "grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=<???>&resource=\nhttps://storage.azure.com"
+						}
+					},
+					{
+						"name": "Web2",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Web1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat(activity('Web1').output.token_type,' ',activity('Web1').output.access_token)",
+									"type": "Expression"
+								},
+								"x-ms-version": "2023-08-03",
+								"x-ms-file-request-intent": "backup",
+								"x-ms-date": {
+									"value": "@concat(formatDateTime(utcnow(),'ddd, dd MMM yyyy hh:mm:ss'),' ','GMT')",
+									"type": "Expression"
+								}
+							},
+							"url": "https://rosinaauestorage.file.core.windows.net/rosinafs/DATA_01.CSV"
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Web1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "@concat(activity('Web1').output.token_type,' ',activity('Web1').output.access_token)",
+										"type": "Expression"
+									},
+									"x-ms-version": "2023-08-03",
+									"x-ms-file-request-intent": "backup",
+									"x-ms-date": {
+										"value": "@concat(formatDateTime(utcnow(),'ddd, dd MMM yyyy hh:mm:ss'),' ','GMT')",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_AzureFS",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSQLDataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureSQLDB",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SalesOrderDetail"
+						},
+						{
+							"dataset": {
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference"
+							},
+							"name": "SalesOrderHeader",
+							"description": "Import data from Azure_SQL_Table"
+						},
+						{
+							"dataset": {
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference"
+							},
+							"name": "Customer"
+						},
+						{
+							"dataset": {
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference"
+							},
+							"name": "Product"
+						},
+						{
+							"dataset": {
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference"
+							},
+							"name": "ProductCategory"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinSales"
+						},
+						{
+							"name": "joinCustomer"
+						},
+						{
+							"name": "aggregateByCustomer"
+						},
+						{
+							"name": "sortCustomerValue"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "aggregateSalerTotalSales"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "joinSalesDetail"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "sortProductPerformance"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SalesOrderID as integer,",
+						"          SalesOrderDetailID as integer,",
+						"          OrderQty as short,",
+						"          ProductID as integer,",
+						"          UnitPrice as decimal(19,4),",
+						"          UnitPriceDiscount as decimal(19,4),",
+						"          LineTotal as decimal(38,6),",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'query',",
+						"     store: 'sqlserver',",
+						"     query: 'Select * from [SalesLT].[SalesOrderDetail]',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> SalesOrderDetail",
+						"source(output(",
+						"          SalesOrderID as integer,",
+						"          RevisionNumber as integer,",
+						"          OrderDate as timestamp,",
+						"          DueDate as timestamp,",
+						"          ShipDate as timestamp,",
+						"          Status as integer,",
+						"          OnlineOrderFlag as boolean,",
+						"          SalesOrderNumber as string,",
+						"          PurchaseOrderNumber as string,",
+						"          AccountNumber as string,",
+						"          CustomerID as integer,",
+						"          ShipToAddressID as integer,",
+						"          BillToAddressID as integer,",
+						"          ShipMethod as string,",
+						"          CreditCardApprovalCode as string,",
+						"          SubTotal as decimal(19,4),",
+						"          TaxAmt as decimal(19,4),",
+						"          Freight as decimal(19,4),",
+						"          TotalDue as decimal(19,4),",
+						"          Comment as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'Select * from [SalesLT].[SalesOrderHeader]',",
+						"     format: 'query') ~> SalesOrderHeader",
+						"source(output(",
+						"          CustomerID as integer,",
+						"          NameStyle as boolean,",
+						"          Title as string,",
+						"          FirstName as string,",
+						"          MiddleName as string,",
+						"          LastName as string,",
+						"          Suffix as string,",
+						"          CompanyName as string,",
+						"          SalesPerson as string,",
+						"          EmailAddress as string,",
+						"          Phone as string,",
+						"          PasswordHash as string,",
+						"          PasswordSalt as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'Select * from [SalesLT].[Customer]',",
+						"     format: 'query') ~> Customer",
+						"source(output(",
+						"          ProductID as integer,",
+						"          Name as string,",
+						"          ProductNumber as string,",
+						"          Color as string,",
+						"          StandardCost as decimal(19,4),",
+						"          ListPrice as decimal(19,4),",
+						"          Size as string,",
+						"          Weight as decimal(8,2),",
+						"          ProductCategoryID as integer,",
+						"          ProductModelID as integer,",
+						"          SellStartDate as timestamp,",
+						"          SellEndDate as timestamp,",
+						"          DiscontinuedDate as timestamp,",
+						"          ThumbNailPhoto as binary,",
+						"          ThumbnailPhotoFileName as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'Select * from [SalesLT].[Product]',",
+						"     format: 'query') ~> Product",
+						"source(output(",
+						"          ProductCategoryID as integer,",
+						"          ParentProductCategoryID as integer,",
+						"          Name as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'Select * from [SalesLT].[ProductCategory]',",
+						"     format: 'query') ~> ProductCategory",
+						"SalesOrderDetail, SalesOrderHeader join(SalesOrderDetail@SalesOrderID == SalesOrderHeader@SalesOrderID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinSales",
+						"joinSales, Customer join(SalesOrderHeader@CustomerID == Customer@CustomerID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinCustomer",
+						"joinCustomer aggregate(groupBy(Customer@CustomerID),",
+						"     TotalSales = sum(LineTotal),",
+						"          AverageOrderValue = avg(LineTotal)) ~> aggregateByCustomer",
+						"join2 sort(desc(TotalSales, false)) ~> sortCustomerValue",
+						"aggregateByCustomer, Customer join(aggregateByCustomer@CustomerID == Customer@CustomerID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 derive(CustomerFullName = concat(toString(FirstName),'·',toString(LastName))) ~> derivedColumn1",
+						"derivedColumn1 select(mapColumn(",
+						"          CustomerID = aggregateByCustomer@CustomerID,",
+						"          TotalSales,",
+						"          AverageOrderValue,",
+						"          CustomerID = Customer@CustomerID,",
+						"          CompanyName,",
+						"          SalesPerson,",
+						"          PasswordSalt,",
+						"          ModifiedDate,",
+						"          CustomerFullName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 aggregate(groupBy(SalesPerson),",
+						"     SalerTotalSales = sum(TotalSales)) ~> aggregateSalerTotalSales",
+						"aggregateSalerTotalSales, select1 join(aggregateSalerTotalSales@SalesPerson == select1@SalesPerson,",
+						"     joinType:'outer',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"Product, SalesOrderDetail join(Product@ProductID == SalesOrderDetail@ProductID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinSalesDetail",
+						"joinSalesDetail, ProductCategory join(Product@ProductCategoryID == ProductCategory@ProductCategoryID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"join3 aggregate(groupBy(Product@ProductCategoryID,",
+						"          Product@ProductID),",
+						"     TotalQuantitySold = sum(OrderQty),",
+						"          TotalSales = sum(LineTotal)) ~> aggregate1",
+						"aggregate1 sort(desc(TotalQuantitySold, false)) ~> sortProductPerformance",
+						"sortCustomerValue sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          bookID as string,",
+						"          title as string,",
+						"          authors as string,",
+						"          average_rating as string,",
+						"          isbn as string,",
+						"          isbn13 as string,",
+						"          language_code as string,",
+						"          {  num_pages} as string,",
+						"          ratings_count as string,",
+						"          text_reviews_count as string,",
+						"          publication_date as string,",
+						"          publisher as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1",
+						"sortProductPerformance sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          bookID as string,",
+						"          title as string,",
+						"          authors as string,",
+						"          average_rating as string,",
+						"          isbn as string,",
+						"          isbn13 as string,",
+						"          language_code as string,",
+						"          {  num_pages} as string,",
+						"          ratings_count as string,",
+						"          text_reviews_count as string,",
+						"          publication_date as string,",
+						"          publisher as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink2"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CSV_to_Delta')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						},
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source2"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "On_PremSQL_ManagedVNetIR",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {OPERATION$} as string,",
+						"          {CSCN$} as double,",
+						"          {COMMIT_TIMESTAMP$} as string,",
+						"          {XIDUSN$} as short,",
+						"          {XIDSLT$} as short,",
+						"          {XIDSEQ$} as integer,",
+						"          {DDLDESC$} as string,",
+						"          {DDLOPER$} as string,",
+						"          {DDLPDOBJN$} as string,",
+						"          {RSID$} as integer,",
+						"          {TARGET_COLMAP$} as string,",
+						"          ADMIN_STATUS_EFF_FROM_EST_FLAG as short,",
+						"          ADMIN_STATUS_LASTMODIFIED_DATE as string,",
+						"          ENTITY_ADMIN_STATUS_EFF_FRM_DT as string,",
+						"          ENTITY_ADMIN_STAT_LSTMODI_DT as string,",
+						"          ENTITY_ADMN_STAT_EFFRM_EST_FG as short,",
+						"          ORGID as long,",
+						"          ORG_ADMIN_REASON_ID as string,",
+						"          ORG_ADMIN_STATUS_EFF_FROM_DATE as string,",
+						"          ORG_ADMIN_STATUS_ID as boolean,",
+						"          ORG_COD_SRC_MD_DATE as string,",
+						"          ORG_COI_SRC_MD_DATE as string,",
+						"          ORG_COUNTRY_DOMICILE_SRC as string,",
+						"          ORG_COUNTRY_DOMICILE_SRC_TYPE as short,",
+						"          ORG_COUNTRY_OF_DOMICILE as string,",
+						"          ORG_COUNTRY_OF_INCORPORATION as string,",
+						"          ORG_COUNTRY_OF_INC_SRC as string,",
+						"          ORG_COUNTRY_OF_INC_SRC_TYPE as short,",
+						"          ORG_CTRY_DOM_EFF_FROM_DATE as string,",
+						"          ORG_CTRY_INC_EFF_FROM_DATE as string,",
+						"          ORG_DATA_PROVIDER as short,",
+						"          ORG_DATA_PROVIDER_EF_FM_ESTFLG as short,",
+						"          ORG_DATA_PROVIDER_EF_FROM_DATE as string,",
+						"          ORG_DATA_PROVIDER_LASTMODIDATE as string,",
+						"          ORG_DATA_PROVIDER_MD_DATE as string,",
+						"          ORG_DEPTH_VALUE as string,",
+						"          ORG_DUPLICATE_OF_EFF_FROM_DATE as string,",
+						"          ORG_DUPLICATE_OF_ORGID as string,",
+						"          ORG_EMAIL_ID as string,",
+						"          ORG_EMAIL_ID_SRC as string,",
+						"          ORG_EMAIL_ID_SRC_MD_DATE as string,",
+						"          ORG_EMAIL_ID_SRC_TYPE as short,",
+						"          ORG_ENTITY_ADMIN_REASON_ID as string,",
+						"          ORG_ENTITY_ADMIN_STATUS_ID as boolean,",
+						"          ORG_FOUNDED_YEAR as string,",
+						"          ORG_FOUNDED_YEAR_SRC as string,",
+						"          ORG_FOUNDED_YEAR_SRC_MD_DATE as string,",
+						"          ORG_FOUNDED_YEAR_SRC_TYPE as short,",
+						"          ORG_GEO_LOCATION_LATITUDE as string,",
+						"          ORG_GEO_LOCATION_LONGITUDE as string,",
+						"          ORG_HAS_ISLAMIC_FINANCE as string,",
+						"          ORG_IMMEDIATE_PARENT_ORGID as long,",
+						"          ORG_IMMEDIATE_PARENT_SRC as string,",
+						"          ORG_IMMEDIATE_PARENT_SRC_TYPE as short,",
+						"          ORG_INACTIVE_DATE as string,",
+						"          ORG_INACTIVE_DATE_FLAG as short,",
+						"          ORG_INACTIVE_DATE_SRC_MD_DATE as string,",
+						"          ORG_INACTIVE_EVENT as short,",
+						"          ORG_INACTIVE_EVENT_SRC as string,",
+						"          ORG_INACTIVE_EVENT_SRC_MD_DATE as string,",
+						"          ORG_INACTIVE_EVENT_SRC_TYPE as short,",
+						"          ORG_IPO_DATE as string,",
+						"          ORG_IP_EFF_FROM_DATE as string,",
+						"          ORG_IP_SRC_MD_DATE as string,",
+						"          ORG_IS_ACTIVE as boolean,",
+						"          ORG_IS_ACTIVE_EFFFROM_EST_FLAG as short,",
+						"          ORG_IS_ACTIVE_EFF_FROM_DATE as string,",
+						"          ORG_IS_ACTIVE_LASTMODIFIEDDATE as string,",
+						"          ORG_IS_EJV_ENTITY as boolean,",
+						"          ORG_IS_MANAGED as boolean,",
+						"          ORG_IS_MANAGED_EFF_FROM_DATE as string,",
+						"          ORG_IS_MANAGED_EF_FROM_ESTFLAG as short,",
+						"          ORG_IS_MANAGED_LASTMODIFYDATE as string,",
+						"          ORG_IS_PUBLIC as boolean,",
+						"          ORG_IS_PUBLIC_EFF_FROM_DATE as string,",
+						"          ORG_IS_PUBLIC_EFF_FROM_ESTFLAG as short,",
+						"          ORG_IS_PUBLIC_LASTMODIFIEDDATE as string,",
+						"          ORG_IS_VERIFIED as boolean,",
+						"          ORG_IS_VERIFIED_EFF_FROM_DATE as string,",
+						"          ORG_IS_VERIFIED_EF_FROM_ESTFLG as short,",
+						"          ORG_IS_VERIFIED_LASTMODIFYDATE as string,",
+						"          ORG_JOI_EFF_FROM_DATE as string,",
+						"          ORG_JOI_EFF_FROM_EST_FLAG as short,",
+						"          ORG_JOI_LAST_MODIFIED_DATE as string,",
+						"          ORG_JOI_SRC_MD_DATE as string,",
+						"          ORG_JURISDICTION_ID as short,",
+						"          ORG_JURISDICTION_SRC as string,",
+						"          ORG_JURISDICTION_SRC_TYPE as short,",
+						"          ORG_LAST_REVIEWED_BY as integer,",
+						"          ORG_LAST_REVIEW_DATE as string,",
+						"          ORG_LEGAL_FORM_ID as integer,",
+						"          ORG_LEGAL_FORM_SRC as string,",
+						"          ORG_LEGAL_FORM_SRC_MD_DATE as string,",
+						"          ORG_LEGAL_FORM_SRC_TYPE as string,",
+						"          ORG_MODIFIED_DATE as string,",
+						"          ORG_NDA_ID as integer,",
+						"          ORG_OFFICIAL_ENG_NAME as string,",
+						"          ORG_OFFICIAL_ENG_NORM_NAME as string,",
+						"          ORG_OFFICIAL_LANG_CULTURE_CD as string,",
+						"          ORG_OFFICIAL_NAME as string,",
+						"          ORG_OFFICIAL_NAME_LANG_CD as string,",
+						"          ORG_OFFICIAL_NAME_LANG_SCR_CD as string,",
+						"          ORG_OFFICIAL_NAME_SRC as string,",
+						"          ORG_OFFICIAL_NAME_SRC_MD_DATE as string,",
+						"          ORG_OFFICIAL_NAME_SRC_TYPE as short,",
+						"          ORG_OFFICIAL_NORM_NAME as string,",
+						"          ORG_OFFICIAL_TRANS_NAME as string,",
+						"          ORG_OFFNAME_EFF_FROM_EST_FLAG as short,",
+						"          ORG_OFFNAME_LAST_MODIFIED_DATE as string,",
+						"          ORG_OFF_NAME_EFF_DATE_FLAG as short,",
+						"          ORG_OFF_NAME_EFF_FROM_DATE as string,",
+						"          ORG_REG_AUTHORITY_ORGID as long,",
+						"          ORG_REG_AUTHORITY_SRC as string,",
+						"          ORG_REG_AUTHORITY_SRC_MD_DATE as string,",
+						"          ORG_REG_AUTHORITY_SRC_TYPE as short,",
+						"          ORG_REG_NUMBER as string,",
+						"          ORG_REG_NUMBER_SRC as string,",
+						"          ORG_REG_NUMBER_SRC_TYPE as short,",
+						"          ORG_REG_NUM_SRC_MD_DATE as string,",
+						"          ORG_SHORT_ENG_NAME as string,",
+						"          ORG_SHTNAME_EFF_FROM_EST_FLAG as short,",
+						"          ORG_SHTNAME_LAST_MODIFIED_DATE as string,",
+						"          ORG_SME_FLAG as string,",
+						"          ORG_STATUS_SRC_MD_DATE as string,",
+						"          ORG_SUBTYPECD_EFF_FROM_DATE as string,",
+						"          ORG_SUBTYPECD_EFF_FROM_ESTFLAG as short,",
+						"          ORG_SUBTYPECD_LASTMODIFIEDDATE as string,",
+						"          ORG_SUBTYPECODE_SRC_MD_DATE as string,",
+						"          ORG_SUBUNIT_NUMBER as integer,",
+						"          ORG_SUBUNIT_ORGID as string,",
+						"          ORG_SUBUNIT_TYPE_ID as boolean,",
+						"          ORG_SUB_TYPE_CD as short,",
+						"          ORG_SUB_TYPE_SRC as string,",
+						"          ORG_SUB_TYPE_SRC_TYPE as short,",
+						"          ORG_TIER_EFF_FROM_DATE as string,",
+						"          ORG_TIER_EFF_FROM_EST_FLAG as short,",
+						"          ORG_TIER_ID as short,",
+						"          ORG_TIER_LAST_MODIFIED_DATE as string,",
+						"          ORG_TYPECODE_SRC_MD_DATE as string,",
+						"          ORG_TYPE_CD as short,",
+						"          ORG_TYPE_CD_EFF_FROM_DATE as string,",
+						"          ORG_TYPE_CD_EFF_FROM_EST_FLAG as short,",
+						"          ORG_TYPE_CD_LAST_MODIFIED_DATE as string,",
+						"          ORG_TYPE_SRC as string,",
+						"          ORG_TYPE_SRC_TYPE as short,",
+						"          ORG_ULTIMATE_PARENT_ORGID as long,",
+						"          ORG_ULTIMATE_PARENT_SRC as string,",
+						"          ORG_ULTIMATE_PARENT_SRC_TYPE as short,",
+						"          ORG_UP_EFF_FROM_DATE as string,",
+						"          ORG_UP_SRC_MD_DATE as string,",
+						"          ORG_WEBSITE as string,",
+						"          ORG_WEBSITE_LAST_MODIFIED_DATE as string,",
+						"          ORG_WEBSITE_SRC as string,",
+						"          ORG_WEBSITE_SRC_MD_DATE as string,",
+						"          ORG_WEBSITE_SRC_TYPE as short,",
+						"          ORG_WORKFLOW_UPDATE_TYPE as short,",
+						"          REG_AUTHORITY_EFF_FROM_DATE as string,",
+						"          SHORT_ENG_NAME_EFF_DATE_FLAG as short,",
+						"          SHORT_ENG_NAME_EFF_FROM_DATE as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output/deltaOutput') ~> source2",
+						"source1 alterRow(updateIf(OPERATION$==\"I \"||OPERATION$==\"UN\"),",
+						"     deleteIf(OPERATION$==\"D \")) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: true,",
+						"     input(",
+						"          {OPERATION$} as string,",
+						"          {CSCN$} as double,",
+						"          {COMMIT_TIMESTAMP$} as string,",
+						"          {XIDUSN$} as short,",
+						"          {XIDSLT$} as short,",
+						"          {XIDSEQ$} as integer,",
+						"          {DDLDESC$} as string,",
+						"          {DDLOPER$} as string,",
+						"          {DDLPDOBJN$} as string,",
+						"          {RSID$} as integer,",
+						"          {TARGET_COLMAP$} as string,",
+						"          ADMIN_STATUS_EFF_FROM_EST_FLAG as short,",
+						"          ADMIN_STATUS_LASTMODIFIED_DATE as string,",
+						"          ENTITY_ADMIN_STATUS_EFF_FRM_DT as string,",
+						"          ENTITY_ADMIN_STAT_LSTMODI_DT as string,",
+						"          ENTITY_ADMN_STAT_EFFRM_EST_FG as short,",
+						"          ORGID as long,",
+						"          ORG_ADMIN_REASON_ID as string,",
+						"          ORG_ADMIN_STATUS_EFF_FROM_DATE as string,",
+						"          ORG_ADMIN_STATUS_ID as boolean,",
+						"          ORG_COD_SRC_MD_DATE as string,",
+						"          ORG_COI_SRC_MD_DATE as string,",
+						"          ORG_COUNTRY_DOMICILE_SRC as string,",
+						"          ORG_COUNTRY_DOMICILE_SRC_TYPE as short,",
+						"          ORG_COUNTRY_OF_DOMICILE as string,",
+						"          ORG_COUNTRY_OF_INCORPORATION as string,",
+						"          ORG_COUNTRY_OF_INC_SRC as string,",
+						"          ORG_COUNTRY_OF_INC_SRC_TYPE as short,",
+						"          ORG_CTRY_DOM_EFF_FROM_DATE as string,",
+						"          ORG_CTRY_INC_EFF_FROM_DATE as string,",
+						"          ORG_DATA_PROVIDER as short,",
+						"          ORG_DATA_PROVIDER_EF_FM_ESTFLG as short,",
+						"          ORG_DATA_PROVIDER_EF_FROM_DATE as string,",
+						"          ORG_DATA_PROVIDER_LASTMODIDATE as string,",
+						"          ORG_DATA_PROVIDER_MD_DATE as string,",
+						"          ORG_DEPTH_VALUE as string,",
+						"          ORG_DUPLICATE_OF_EFF_FROM_DATE as string,",
+						"          ORG_DUPLICATE_OF_ORGID as string,",
+						"          ORG_EMAIL_ID as string,",
+						"          ORG_EMAIL_ID_SRC as string,",
+						"          ORG_EMAIL_ID_SRC_MD_DATE as string,",
+						"          ORG_EMAIL_ID_SRC_TYPE as short,",
+						"          ORG_ENTITY_ADMIN_REASON_ID as string,",
+						"          ORG_ENTITY_ADMIN_STATUS_ID as boolean,",
+						"          ORG_FOUNDED_YEAR as string,",
+						"          ORG_FOUNDED_YEAR_SRC as string,",
+						"          ORG_FOUNDED_YEAR_SRC_MD_DATE as string,",
+						"          ORG_FOUNDED_YEAR_SRC_TYPE as short,",
+						"          ORG_GEO_LOCATION_LATITUDE as string,",
+						"          ORG_GEO_LOCATION_LONGITUDE as string,",
+						"          ORG_HAS_ISLAMIC_FINANCE as string,",
+						"          ORG_IMMEDIATE_PARENT_ORGID as long,",
+						"          ORG_IMMEDIATE_PARENT_SRC as string,",
+						"          ORG_IMMEDIATE_PARENT_SRC_TYPE as short,",
+						"          ORG_INACTIVE_DATE as string,",
+						"          ORG_INACTIVE_DATE_FLAG as short,",
+						"          ORG_INACTIVE_DATE_SRC_MD_DATE as string,",
+						"          ORG_INACTIVE_EVENT as short,",
+						"          ORG_INACTIVE_EVENT_SRC as string,",
+						"          ORG_INACTIVE_EVENT_SRC_MD_DATE as string,",
+						"          ORG_INACTIVE_EVENT_SRC_TYPE as short,",
+						"          ORG_IPO_DATE as string,",
+						"          ORG_IP_EFF_FROM_DATE as string,",
+						"          ORG_IP_SRC_MD_DATE as string,",
+						"          ORG_IS_ACTIVE as boolean,",
+						"          ORG_IS_ACTIVE_EFFFROM_EST_FLAG as short,",
+						"          ORG_IS_ACTIVE_EFF_FROM_DATE as string,",
+						"          ORG_IS_ACTIVE_LASTMODIFIEDDATE as string,",
+						"          ORG_IS_EJV_ENTITY as boolean,",
+						"          ORG_IS_MANAGED as boolean,",
+						"          ORG_IS_MANAGED_EFF_FROM_DATE as string,",
+						"          ORG_IS_MANAGED_EF_FROM_ESTFLAG as short,",
+						"          ORG_IS_MANAGED_LASTMODIFYDATE as string,",
+						"          ORG_IS_PUBLIC as boolean,",
+						"          ORG_IS_PUBLIC_EFF_FROM_DATE as string,",
+						"          ORG_IS_PUBLIC_EFF_FROM_ESTFLAG as short,",
+						"          ORG_IS_PUBLIC_LASTMODIFIEDDATE as string,",
+						"          ORG_IS_VERIFIED as boolean,",
+						"          ORG_IS_VERIFIED_EFF_FROM_DATE as string,",
+						"          ORG_IS_VERIFIED_EF_FROM_ESTFLG as short,",
+						"          ORG_IS_VERIFIED_LASTMODIFYDATE as string,",
+						"          ORG_JOI_EFF_FROM_DATE as string,",
+						"          ORG_JOI_EFF_FROM_EST_FLAG as short,",
+						"          ORG_JOI_LAST_MODIFIED_DATE as string,",
+						"          ORG_JOI_SRC_MD_DATE as string,",
+						"          ORG_JURISDICTION_ID as short,",
+						"          ORG_JURISDICTION_SRC as string,",
+						"          ORG_JURISDICTION_SRC_TYPE as short,",
+						"          ORG_LAST_REVIEWED_BY as integer,",
+						"          ORG_LAST_REVIEW_DATE as string,",
+						"          ORG_LEGAL_FORM_ID as integer,",
+						"          ORG_LEGAL_FORM_SRC as string,",
+						"          ORG_LEGAL_FORM_SRC_MD_DATE as string,",
+						"          ORG_LEGAL_FORM_SRC_TYPE as string,",
+						"          ORG_MODIFIED_DATE as string,",
+						"          ORG_NDA_ID as integer,",
+						"          ORG_OFFICIAL_ENG_NAME as string,",
+						"          ORG_OFFICIAL_ENG_NORM_NAME as string,",
+						"          ORG_OFFICIAL_LANG_CULTURE_CD as string,",
+						"          ORG_OFFICIAL_NAME as string,",
+						"          ORG_OFFICIAL_NAME_LANG_CD as string,",
+						"          ORG_OFFICIAL_NAME_LANG_SCR_CD as string,",
+						"          ORG_OFFICIAL_NAME_SRC as string,",
+						"          ORG_OFFICIAL_NAME_SRC_MD_DATE as string,",
+						"          ORG_OFFICIAL_NAME_SRC_TYPE as short,",
+						"          ORG_OFFICIAL_NORM_NAME as string,",
+						"          ORG_OFFICIAL_TRANS_NAME as string,",
+						"          ORG_OFFNAME_EFF_FROM_EST_FLAG as short,",
+						"          ORG_OFFNAME_LAST_MODIFIED_DATE as string,",
+						"          ORG_OFF_NAME_EFF_DATE_FLAG as short,",
+						"          ORG_OFF_NAME_EFF_FROM_DATE as string,",
+						"          ORG_REG_AUTHORITY_ORGID as long,",
+						"          ORG_REG_AUTHORITY_SRC as string,",
+						"          ORG_REG_AUTHORITY_SRC_MD_DATE as string,",
+						"          ORG_REG_AUTHORITY_SRC_TYPE as short,",
+						"          ORG_REG_NUMBER as string,",
+						"          ORG_REG_NUMBER_SRC as string,",
+						"          ORG_REG_NUMBER_SRC_TYPE as short,",
+						"          ORG_REG_NUM_SRC_MD_DATE as string,",
+						"          ORG_SHORT_ENG_NAME as string,",
+						"          ORG_SHTNAME_EFF_FROM_EST_FLAG as short,",
+						"          ORG_SHTNAME_LAST_MODIFIED_DATE as string,",
+						"          ORG_SME_FLAG as string,",
+						"          ORG_STATUS_SRC_MD_DATE as string,",
+						"          ORG_SUBTYPECD_EFF_FROM_DATE as string,",
+						"          ORG_SUBTYPECD_EFF_FROM_ESTFLAG as short,",
+						"          ORG_SUBTYPECD_LASTMODIFIEDDATE as string,",
+						"          ORG_SUBTYPECODE_SRC_MD_DATE as string,",
+						"          ORG_SUBUNIT_NUMBER as integer,",
+						"          ORG_SUBUNIT_ORGID as string,",
+						"          ORG_SUBUNIT_TYPE_ID as boolean,",
+						"          ORG_SUB_TYPE_CD as short,",
+						"          ORG_SUB_TYPE_SRC as string,",
+						"          ORG_SUB_TYPE_SRC_TYPE as short,",
+						"          ORG_TIER_EFF_FROM_DATE as string,",
+						"          ORG_TIER_EFF_FROM_EST_FLAG as short,",
+						"          ORG_TIER_ID as short,",
+						"          ORG_TIER_LAST_MODIFIED_DATE as string,",
+						"          ORG_TYPECODE_SRC_MD_DATE as string,",
+						"          ORG_TYPE_CD as short,",
+						"          ORG_TYPE_CD_EFF_FROM_DATE as string,",
+						"          ORG_TYPE_CD_EFF_FROM_EST_FLAG as short,",
+						"          ORG_TYPE_CD_LAST_MODIFIED_DATE as string,",
+						"          ORG_TYPE_SRC as string,",
+						"          ORG_TYPE_SRC_TYPE as short,",
+						"          ORG_ULTIMATE_PARENT_ORGID as long,",
+						"          ORG_ULTIMATE_PARENT_SRC as string,",
+						"          ORG_ULTIMATE_PARENT_SRC_TYPE as short,",
+						"          ORG_UP_EFF_FROM_DATE as string,",
+						"          ORG_UP_SRC_MD_DATE as string,",
+						"          ORG_WEBSITE as string,",
+						"          ORG_WEBSITE_LAST_MODIFIED_DATE as string,",
+						"          ORG_WEBSITE_SRC as string,",
+						"          ORG_WEBSITE_SRC_MD_DATE as string,",
+						"          ORG_WEBSITE_SRC_TYPE as short,",
+						"          ORG_WORKFLOW_UPDATE_TYPE as short,",
+						"          REG_AUTHORITY_EFF_FROM_DATE as string,",
+						"          SHORT_ENG_NAME_EFF_DATE_FLAG as short,",
+						"          SHORT_ENG_NAME_EFF_FROM_DATE as string",
+						"     ),",
+						"     format: 'delta',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output/deltaOutput',",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable: true,",
+						"     insertable: true,",
+						"     updateable: true,",
+						"     upsertable: true,",
+						"     keys:['ORGID'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          ORGID,",
+						"          ORG_DATA_PROVIDER,",
+						"          ORG_OFFICIAL_NAME_LANG_SCR_CD,",
+						"          ORG_OFFICIAL_NAME_LANG_CD,",
+						"          ORG_OFFICIAL_LANG_CULTURE_CD,",
+						"          ORG_OFFICIAL_NAME,",
+						"          ORG_OFF_NAME_EFF_FROM_DATE,",
+						"          ORG_IS_ACTIVE,",
+						"          ORG_COUNTRY_OF_DOMICILE,",
+						"          ORG_CTRY_DOM_EFF_FROM_DATE,",
+						"          ORG_JURISDICTION_ID,",
+						"          ORG_IS_MANAGED,",
+						"          ORG_IS_VERIFIED,",
+						"          ORG_TYPE_CD,",
+						"          ORG_SUB_TYPE_CD,",
+						"          ORG_COUNTRY_OF_INCORPORATION,",
+						"          ORG_CTRY_INC_EFF_FROM_DATE,",
+						"          ORG_IS_PUBLIC,",
+						"          ORG_WEBSITE,",
+						"          ORG_FOUNDED_YEAR,",
+						"          ORG_INACTIVE_DATE,",
+						"          ORG_INACTIVE_EVENT,",
+						"          ORG_REG_AUTHORITY_ORGID,",
+						"          REG_AUTHORITY_EFF_FROM_DATE,",
+						"          ORG_IPO_DATE,",
+						"          ORG_REG_NUMBER,",
+						"          ORG_SHORT_ENG_NAME,",
+						"          SHORT_ENG_NAME_EFF_FROM_DATE,",
+						"          ORG_OFFICIAL_NORM_NAME,",
+						"          ORG_OFFICIAL_ENG_NAME,",
+						"          ORG_OFFICIAL_ENG_NORM_NAME,",
+						"          ORG_OFFICIAL_TRANS_NAME,",
+						"          ORG_DUPLICATE_OF_ORGID,",
+						"          ORG_DUPLICATE_OF_EFF_FROM_DATE,",
+						"          ORG_IP_EFF_FROM_DATE,",
+						"          ORG_IMMEDIATE_PARENT_ORGID,",
+						"          ORG_ULTIMATE_PARENT_ORGID,",
+						"          ORG_UP_EFF_FROM_DATE,",
+						"          ORG_NDA_ID,",
+						"          ORG_LAST_REVIEW_DATE,",
+						"          ORG_LAST_REVIEWED_BY,",
+						"          ORG_TYPE_SRC,",
+						"          ORG_TYPE_SRC_TYPE,",
+						"          ORG_SUB_TYPE_SRC,",
+						"          ORG_SUB_TYPE_SRC_TYPE,",
+						"          ORG_OFFICIAL_NAME_SRC,",
+						"          ORG_OFFICIAL_NAME_SRC_TYPE,",
+						"          ORG_COUNTRY_DOMICILE_SRC,",
+						"          ORG_COUNTRY_DOMICILE_SRC_TYPE,",
+						"          ORG_COUNTRY_OF_INC_SRC,",
+						"          ORG_COUNTRY_OF_INC_SRC_TYPE,",
+						"          ORG_WEBSITE_SRC,",
+						"          ORG_WEBSITE_SRC_TYPE,",
+						"          ORG_FOUNDED_YEAR_SRC,",
+						"          ORG_FOUNDED_YEAR_SRC_TYPE,",
+						"          ORG_INACTIVE_EVENT_SRC,",
+						"          ORG_INACTIVE_EVENT_SRC_TYPE,",
+						"          ORG_REG_AUTHORITY_SRC,",
+						"          ORG_REG_AUTHORITY_SRC_TYPE,",
+						"          ORG_REG_NUMBER_SRC,",
+						"          ORG_REG_NUMBER_SRC_TYPE,",
+						"          ORG_JURISDICTION_SRC,",
+						"          ORG_JURISDICTION_SRC_TYPE,",
+						"          ORG_IMMEDIATE_PARENT_SRC,",
+						"          ORG_IMMEDIATE_PARENT_SRC_TYPE,",
+						"          ORG_ULTIMATE_PARENT_SRC,",
+						"          ORG_ULTIMATE_PARENT_SRC_TYPE,",
+						"          ORG_ADMIN_STATUS_ID,",
+						"          ORG_ADMIN_STATUS_EFF_FROM_DATE,",
+						"          ORG_ADMIN_REASON_ID,",
+						"          ORG_INACTIVE_DATE_FLAG,",
+						"          ORG_OFFICIAL_NAME_SRC_MD_DATE,",
+						"          ORG_JOI_SRC_MD_DATE,",
+						"          ORG_TYPECODE_SRC_MD_DATE,",
+						"          ORG_SUBTYPECODE_SRC_MD_DATE,",
+						"          ORG_STATUS_SRC_MD_DATE,",
+						"          ORG_WEBSITE_SRC_MD_DATE,",
+						"          ORG_FOUNDED_YEAR_SRC_MD_DATE,",
+						"          ORG_INACTIVE_DATE_SRC_MD_DATE,",
+						"          ORG_INACTIVE_EVENT_SRC_MD_DATE,",
+						"          ORG_COD_SRC_MD_DATE,",
+						"          ORG_COI_SRC_MD_DATE,",
+						"          ORG_REG_AUTHORITY_SRC_MD_DATE,",
+						"          ORG_REG_NUM_SRC_MD_DATE,",
+						"          ORG_IP_SRC_MD_DATE,",
+						"          ORG_UP_SRC_MD_DATE,",
+						"          ORG_OFF_NAME_EFF_DATE_FLAG,",
+						"          SHORT_ENG_NAME_EFF_DATE_FLAG,",
+						"          ORG_SUBUNIT_TYPE_ID,",
+						"          ORG_SUBUNIT_NUMBER,",
+						"          ORG_SUBUNIT_ORGID,",
+						"          ORG_DATA_PROVIDER_MD_DATE,",
+						"          ORG_IS_EJV_ENTITY,",
+						"          ORG_TIER_ID,",
+						"          ORG_OFFNAME_LAST_MODIFIED_DATE,",
+						"          ORG_OFFNAME_EFF_FROM_EST_FLAG,",
+						"          ORG_SHTNAME_LAST_MODIFIED_DATE,",
+						"          ORG_SHTNAME_EFF_FROM_EST_FLAG,",
+						"          ORG_IS_ACTIVE_EFF_FROM_DATE,",
+						"          ORG_IS_ACTIVE_EFFFROM_EST_FLAG,",
+						"          ORG_IS_ACTIVE_LASTMODIFIEDDATE,",
+						"          ORG_TYPE_CD_EFF_FROM_DATE,",
+						"          ORG_TYPE_CD_EFF_FROM_EST_FLAG,",
+						"          ORG_TYPE_CD_LAST_MODIFIED_DATE,",
+						"          ORG_SUBTYPECD_EFF_FROM_DATE,",
+						"          ORG_SUBTYPECD_EFF_FROM_ESTFLAG,",
+						"          ORG_SUBTYPECD_LASTMODIFIEDDATE,",
+						"          ORG_WEBSITE_LAST_MODIFIED_DATE,",
+						"          ORG_IS_MANAGED_EFF_FROM_DATE,",
+						"          ORG_IS_MANAGED_EF_FROM_ESTFLAG,",
+						"          ORG_IS_MANAGED_LASTMODIFYDATE,",
+						"          ORG_IS_VERIFIED_EFF_FROM_DATE,",
+						"          ORG_IS_VERIFIED_EF_FROM_ESTFLG,",
+						"          ORG_IS_VERIFIED_LASTMODIFYDATE,",
+						"          ORG_IS_PUBLIC_EFF_FROM_DATE,",
+						"          ORG_IS_PUBLIC_EFF_FROM_ESTFLAG,",
+						"          ORG_IS_PUBLIC_LASTMODIFIEDDATE,",
+						"          ORG_DATA_PROVIDER_EF_FROM_DATE,",
+						"          ORG_DATA_PROVIDER_EF_FM_ESTFLG,",
+						"          ORG_DATA_PROVIDER_LASTMODIDATE,",
+						"          ORG_TIER_EFF_FROM_DATE,",
+						"          ORG_TIER_EFF_FROM_EST_FLAG,",
+						"          ORG_TIER_LAST_MODIFIED_DATE,",
+						"          ADMIN_STATUS_EFF_FROM_EST_FLAG,",
+						"          ADMIN_STATUS_LASTMODIFIED_DATE,",
+						"          ORG_JOI_EFF_FROM_DATE,",
+						"          ORG_JOI_EFF_FROM_EST_FLAG,",
+						"          ORG_JOI_LAST_MODIFIED_DATE,",
+						"          ORG_MODIFIED_DATE,",
+						"          ORG_SME_FLAG,",
+						"          ORG_ENTITY_ADMIN_STATUS_ID,",
+						"          ENTITY_ADMIN_STATUS_EFF_FRM_DT,",
+						"          ORG_ENTITY_ADMIN_REASON_ID,",
+						"          ENTITY_ADMN_STAT_EFFRM_EST_FG,",
+						"          ENTITY_ADMIN_STAT_LSTMODI_DT,",
+						"          ORG_DEPTH_VALUE,",
+						"          ORG_WORKFLOW_UPDATE_TYPE,",
+						"          ORG_EMAIL_ID,",
+						"          ORG_EMAIL_ID_SRC,",
+						"          ORG_EMAIL_ID_SRC_TYPE,",
+						"          ORG_EMAIL_ID_SRC_MD_DATE,",
+						"          ORG_LEGAL_FORM_ID,",
+						"          ORG_LEGAL_FORM_SRC,",
+						"          ORG_LEGAL_FORM_SRC_TYPE,",
+						"          ORG_LEGAL_FORM_SRC_MD_DATE,",
+						"          ORG_GEO_LOCATION_LATITUDE,",
+						"          ORG_GEO_LOCATION_LONGITUDE,",
+						"          ORG_HAS_ISLAMIC_FINANCE",
+						"     )) ~> sink1",
+						"source2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink2"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Csv to OnPrem SQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source2"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "On_PremSQL_ManagedVNetIR",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          Index as short,",
+						"          {Organization Id} as string,",
+						"          Name as string,",
+						"          Website as string,",
+						"          Country as string,",
+						"          Description as string,",
+						"          Founded as short,",
+						"          Industry as string,",
+						"          {Number of employees} as short",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'HugeDatasets',",
+						"     fileName: 'organizations-2000000.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     partitionBy('roundRobin', 100)) ~> source2",
+						"source2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink2"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Data Flow Slice_copy1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							},
+							"name": "SourceFile"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference"
+							},
+							"name": "sink3"
+						}
+					],
+					"transformations": [
+						{
+							"name": "split1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Index as integer,",
+						"          {Organization Id} as string,",
+						"          Name as string,",
+						"          Website as string,",
+						"          Country as string,",
+						"          Description as string,",
+						"          Founded as integer,",
+						"          Industry as string,",
+						"          {Number of employees} as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SourceFile",
+						"SourceFile split(and(Index>100000,Index<=2000000),",
+						"     and(Index>2000000,Index<=3000000),",
+						"     disjoint: false) ~> split1@(part1, part2, part0)",
+						"split1@part1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['my_file_Index100w-Index200w.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1",
+						"split1@part2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['my_file_Index200w+.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink2",
+						"split1@part0 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['my_file_Index0-Index100w.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink3"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parse_JSON_Dataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select2"
+						},
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "ModifyColumns1",
+							"description": "Autogenerated by data preview actions"
+						},
+						{
+							"name": "select3"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          eTag as string,",
+						"          id as string,",
+						"          location as string,",
+						"          name as string,",
+						"          properties as (columns as (name as string, type as string)[], nextLink as string, rows as string[][]),",
+						"          sku as string,",
+						"          type as string",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'json',",
+						"     fileSystem: 'data',",
+						"     fileName: 'Billing JSON output.JSON',",
+						"     documentForm: 'documentPerLine') ~> source1",
+						"source1 select(mapColumn(",
+						"          rows = properties.rows",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select2",
+						"select2 foldDown(unroll(rows, rows),",
+						"     mapColumn(",
+						"          rows",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"flatten1 derive(PreTaxCost = rows[1],",
+						"          UsageDate = rows[2],",
+						"          Currency = rows[3]) ~> ModifyColumns1",
+						"ModifyColumns1 select(mapColumn(",
+						"          PreTaxCost,",
+						"          UsageDate,",
+						"          Currency",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select3",
+						"select3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          bookID as string,",
+						"          title as string,",
+						"          authors as string,",
+						"          average_rating as string,",
+						"          isbn as string,",
+						"          isbn13 as string,",
+						"          language_code as string,",
+						"          {  num_pages} as string,",
+						"          ratings_count as string,",
+						"          text_reviews_count as string,",
+						"          publication_date as string,",
+						"          publisher as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     format: 'table') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Test_Partition')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ADLS_Parquet",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'FileName',",
+						"     format: 'parquet',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     fileName: 'TestPartition.parquet',",
+						"     partitionBy('dynamicRange', 12,",
+						"          'ID'",
+						"     )) ~> source1",
+						"source1 derive(FileName = 'ID') ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     rowUrlColumn:'FileName',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/powerquery_books')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "WranglingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"name": "RosinaADLS_gen2_CSV",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tmultiLineRow: true) ~> RosinaADLS_gen2_CSV",
+							"dataset": {
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference"
+							}
+						}
+					],
+					"script": "section Section1;\r\nshared RosinaADLS_gen2_CSV = let AdfDoc = AzureStorage.DataLakeContents(\"https://rosinaauestorage.dfs.core.windows.net/data/SampleDatasets/books.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared UserQuery = let Source = #\"RosinaADLS_gen2_CSV\",\r\n  #\"Changed column type\" = Table.TransformColumnTypes(Source, {{\"bookID\", Int64.Type}, {\"title\", type text}, {\"authors\", type text}, {\"average_rating\", type text}, {\"isbn\", type text}, {\"isbn13\", type text}, {\"language_code\", type text}, {\"  num_pages\", type text}, {\"ratings_count\", Int64.Type}, {\"text_reviews_count\", Int64.Type}, {\"publication_date\", type text}, {\"publisher\", type text}}),\r\n  #\"Uppercased text\" = Table.TransformColumns(#\"Changed column type\", {{\"language_code\", each Text.Upper(_), type nullable text}}) in #\"Uppercased text\";\r\n",
+					"documentLocale": "en-us"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PowerQuery Pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "powerquery_books",
+						"type": "ExecuteWranglingDataflow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "powerquery_books",
+								"type": "DataFlowReference",
+								"datasetParameters": {
+									"RosinaADLS_gen2_CSV": {},
+									"UserQueryADLSSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"queries": [
+								{
+									"queryName": "UserQuery",
+									"dataflowSinks": [
+										{
+											"name": "UserQueryADLSSink",
+											"dataset": {
+												"referenceName": "ADLS_Sink",
+												"type": "DatasetReference",
+												"parameters": {}
+											},
+											"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['wrangled_books.csv'],\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> UserQueryADLSSink"
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/powerquery_books')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger1_deleteme')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "TEST Dataflow",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 5,
+						"startTime": "2024-12-04T14:40:00",
+						"endTime": "2024-12-06T18:32:00",
+						"timeZone": "China Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/TEST Dataflow')]"
+			]
+		}
+	]
+}

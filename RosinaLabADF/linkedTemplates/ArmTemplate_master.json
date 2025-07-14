@@ -1,0 +1,942 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		},
+		"ADLS_HDInsightclusterStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ADLS_HDInsightclusterStorage'"
+		},
+		"AzureSQLDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSQLDB'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=rosina-azsql.database.windows.net;Initial Catalog=RosinaSampleDB;User ID=azureuser"
+		},
+		"AzureSqlMI_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlMI'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=rosina-sqlmi.public.ec0eedb99a74.database.windows.net,3342;Initial Catalog=RosinaSampleDB;User ID=azureuser"
+		},
+		"AzureSqlMI_mymi_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlMI_mymi'"
+		},
+		"Blob_RosinaExternalStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Blob_RosinaExternalStorage'"
+		},
+		"GitHub1_credential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'credential' of 'GitHub1'"
+		},
+		"ODBC_Oracle_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ODBC_Oracle'"
+		},
+		"OnPremSQL_ManagedVNetConnector_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQL_ManagedVNetConnector'"
+		},
+		"On_PremSQL_RosinaVM_test_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'On_PremSQL_RosinaVM_test'",
+			"defaultValue": "Integrated Security=False;Data Source=localhost;Initial Catalog=Data;User ID=azureuser"
+		},
+		"Rest_rosina112adlsgen2_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'Rest_rosina112adlsgen2'"
+		},
+		"RosinaHDIcluster_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'RosinaHDIcluster'"
+		},
+		"RosinaOracleDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'RosinaOracleDB'",
+			"defaultValue": "host=localhost;port=1521;sid=FREE;user id=C##azureuser;fetchTSWTZasTimestamp=0"
+		},
+		"SFTP_AzBlob_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SFTP_AzBlob'"
+		},
+		"SSISIR_staggingBlob_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SSISIR_staggingBlob'"
+		},
+		"SalesforceLinus_clientSecret": {
+			"type": "secureString",
+			"metadata": "Secure string for 'clientSecret' of 'SalesforceLinus'"
+		},
+		"SalesforceV1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SalesforceV1'"
+		},
+		"SalesforceV1_securityToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'securityToken' of 'SalesforceV1'"
+		},
+		"Sftp_Rosina22env_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Sftp_Rosina22env'"
+		},
+		"SharePointOnlineList1_servicePrincipalEmbeddedCert": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalEmbeddedCert' of 'SharePointOnlineList1'"
+		},
+		"Snowflake_EN56775_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Snowflake_EN56775'"
+		},
+		"SynapseDedictedSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SynapseDedictedSql'"
+		},
+		"AzFileShare_MI_Auth_properties_typeProperties_serviceEndpoint": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.file.core.windows.net/"
+		},
+		"AzureBlobStorage_aue_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'AzureBlobStorage_aue'"
+		},
+		"AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0805-023922-npdt132b"
+		},
+		"AzureFunction1_properties_typeProperties_functionAppUrl": {
+			"type": "string",
+			"defaultValue": "https://rosinafunctionapp.azurewebsites.net"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "mymi.f3c14a720ce8.database.windows.net"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorksLT2016"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "SQLadmin"
+		},
+		"Dataverse_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+		},
+		"DynamicsCRM_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+		},
+		"GitHub1_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "1121050482@QQ.COM"
+		},
+		"Hive1_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "///"
+		},
+		"Http_CRM_WebAPI_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/sharepointdocuments"
+		},
+		"Http_CostDetails_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().URL}"
+		},
+		"Http_GraphAPI_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{concat('https://graph.microsoft.com/v1.0/drives/',linkedService().driverID)}"
+		},
+		"ODBC_Oracle_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "C##azureuser"
+		},
+		"OData1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/"
+		},
+		"OnPremMySQL_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "10.1.1.5"
+		},
+		"OnPremMySQL_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "rosina"
+		},
+		"OnPremMySQL_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "rosinavm-test.rosina.com"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Data"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"OnPrem_SQL_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "@{linkedService().ServerName}"
+		},
+		"OnPrem_SQL_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().DBName}"
+		},
+		"OnPrem_SQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"OnedriveSource_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().downloadUrl}"
+		},
+		"REST_Graph_My365Tenant_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://graph.microsoft.com/v1.0/"
+		},
+		"REST_Graph_My365Tenant_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+		},
+		"REST_Graph_My365Tenant_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+		},
+		"REST_Graph_My365Tenant_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "https://graph.microsoft.com"
+		},
+		"RestCostManagement_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/query?api-version=2021-10-01"
+		},
+		"RestService_Graph_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://graph.microsoft.com/v1.0/"
+		},
+		"RestService_Graph_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "c6129fc7-7054-42d8-8b15-4a4492081a09"
+		},
+		"RestService_Graph_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "5a8e8dfb-bc71-4aa2-af2b-cdbda1390286"
+		},
+		"RestService_Graph_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "https://graph.microsoft.com"
+		},
+		"Rest_AzStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.file.core.windows.net/"
+		},
+		"Rest_AzStorage_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "https://storage.azure.com"
+		},
+		"Rest_rosina112adlsgen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rosina112adlsgen2.file.core.windows.net/"
+		},
+		"Rest_rosina112adlsgen2_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "4abad096-20e9-402a-9f8a-47e067ffc8df"
+		},
+		"Rest_rosina112adlsgen2_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "c4512961-29bd-4ae1-b3f7-c16c713d5089"
+		},
+		"Rest_rosina112adlsgen2_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "https://storage.azure.com"
+		},
+		"RosinaADLS_gen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.dfs.core.windows.net/"
+		},
+		"RosinaAKV_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://Rosina-AKV.vault.azure.net/"
+		},
+		"RosinaHDIcluster_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"Rosina_AKV_External_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://Rosina-AKV-External.vault.azure.net/"
+		},
+		"SFTP_AzBlob_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "rosinaauestorage.blob.core.windows.net"
+		},
+		"SFTP_AzBlob_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rosinaauestorage.azureuser"
+		},
+		"SPO_Http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://m365x68336840.sharepoint.com/sites/RosinaSite/_api/web/"
+		},
+		"SalesforceLinus_properties_typeProperties_environmentUrl": {
+			"type": "string",
+			"defaultValue": "https://datamovement-dev-ed.my.salesforce.com/"
+		},
+		"SalesforceLinus_properties_typeProperties_clientId": {
+			"type": "string",
+			"defaultValue": "3MVG9fMtCkV6eLhcwZpJZTjXp4aoCeKzffeGchTQ3Mz8LFeJGUc7TQ0fOxGoLffGf.HQg4pN_xcw63Rshh5w."
+		},
+		"SalesforceV1_properties_typeProperties_environmentUrl": {
+			"type": "string",
+			"defaultValue": "https://datamovement-dev-ed.my.salesforce.com/"
+		},
+		"SalesforceV1_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "datatransfersh@live.com"
+		},
+		"Sftp_Rosina22env_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "10.1.1.5"
+		},
+		"Sftp_Rosina22env_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"SharePointOnlineList1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+		},
+		"Snowflake_EN56775_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ROSINASNOWFLAKE"
+		},
+		"Snowflake_EN56775_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "qaggkyi-en56775.snowflakecomputing.com"
+		},
+		"SynapseDedictedSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "tcp:rosinasynapse.sql.azuresynapse.net,1433"
+		},
+		"SynapseDedictedSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "RosinaDeicatedSqlPool"
+		},
+		"SynapseDedictedSql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"StorageEvent_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaauestorage"
+		},
+		"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"type": "string",
+			"defaultValue": "rosina-sqlmi.ec0eedb99a74.database.windows.net"
+		},
+		"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"type": "secureString"
+		},
+		"AzureKeyVault_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaLabRG/providers/Microsoft.KeyVault/vaults/Rosina-AKV"
+		},
+		"AzureKeyVault_properties_groupId": {
+			"type": "string",
+			"defaultValue": "vault"
+		},
+		"AzureKeyVault_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"rosina-akv.vault.azure.net"
+			]
+		},
+		"AzureSqlMI_mymi_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/57b69ca2-28c0-44e4-a3a9-b8f162590321/resourceGroups/RG-zongmei/providers/Microsoft.Sql/managedInstances/mymi"
+		},
+		"AzureSqlMI_mymi_properties_groupId": {
+			"type": "string",
+			"defaultValue": "managedInstance"
+		},
+		"AzureSqlMI_mymi_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"mymi.f3c14a720ce8.database.windows.net"
+			]
+		},
+		"MPE_rosinaexternalstorage_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaexternalstorage"
+		},
+		"MPE_rosinaexternalstorage_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"MPE_rosinaexternalstorage_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"rosinaexternalstorage.blob.core.windows.net"
+			]
+		},
+		"ManagedPE_ADLSgen2_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaauestorage"
+		},
+		"ManagedPE_ADLSgen2_properties_groupId": {
+			"type": "string",
+			"defaultValue": "dfs"
+		},
+		"ManagedPE_ADLSgen2_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"rosinaauestorage.dfs.core.windows.net"
+			]
+		},
+		"PrivateLinkService_OnPremSQL_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Network/privateLinkServices/RosinaPrivateLinkService"
+		},
+		"PrivateLinkService_OnPremSQL_properties_groupId": {
+			"type": "string",
+			"defaultValue": ""
+		},
+		"PrivateLinkService_OnPremSQL_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"rosinavm-test.rosina.com"
+			]
+		},
+		"rosinaauestorageMPE_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaauestorage"
+		},
+		"rosinaauestorageMPE_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"rosinaauestorageMPE_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"rosinaauestorage.blob.core.windows.net"
+			]
+		},
+		"default_properties_SnowflakeLSJSON_value": {
+			"type": "object",
+			"defaultValue": {
+				"name": "Snowflake_EN56775",
+				"type": "Microsoft.DataFactory/factories/linkedservices",
+				"properties": {
+					"description": "https://qaggkyi-en56775.snowflakecomputing.com\nUsername ROSINAWANG\n",
+					"annotations": [],
+					"type": "SnowflakeV2",
+					"typeProperties": {
+						"authenticationType": "Basic",
+						"accountIdentifier": "EN56775",
+						"user": "ROSINAWANG",
+						"database": "ROSINASNOWFLAKE",
+						"warehouse": "ROSINA_WAREHOUSE",
+						"host": "qaggkyi-en56775.snowflakecomputing.com",
+						"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUxM0E3Q0M4LTNBRkEtNDk2MS1BRjA5LTM5RTcxRkVGMTAzMV9jMjM0MTMwYy04MDVmLTRkZGEtYWY2NC0xMDk3YmJmNTY5YjgiDQp9"
+					}
+				}
+			}
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "RosinaLabADF_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"GitHub1_credential": {
+						"value": "[parameters('GitHub1_credential')]"
+					},
+					"default_properties_SnowflakeLSJSON_value": {
+						"value": "[parameters('default_properties_SnowflakeLSJSON_value')]"
+					},
+					"AzFileShare_MI_Auth_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('AzFileShare_MI_Auth_properties_typeProperties_serviceEndpoint')]"
+					},
+					"AzureDatabricks_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('AzureDatabricks_properties_typeProperties_existingClusterId')]"
+					},
+					"GitHub1_properties_typeProperties_username": {
+						"value": "[parameters('GitHub1_properties_typeProperties_username')]"
+					},
+					"Hive1_properties_typeProperties_host": {
+						"value": "[parameters('Hive1_properties_typeProperties_host')]"
+					},
+					"Http_CRM_WebAPI_properties_typeProperties_url": {
+						"value": "[parameters('Http_CRM_WebAPI_properties_typeProperties_url')]"
+					},
+					"Http_CostDetails_properties_typeProperties_url": {
+						"value": "[parameters('Http_CostDetails_properties_typeProperties_url')]"
+					},
+					"Http_GraphAPI_properties_typeProperties_url": {
+						"value": "[parameters('Http_GraphAPI_properties_typeProperties_url')]"
+					},
+					"OData1_properties_typeProperties_url": {
+						"value": "[parameters('OData1_properties_typeProperties_url')]"
+					},
+					"OnedriveSource_properties_typeProperties_url": {
+						"value": "[parameters('OnedriveSource_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"SFTP_AzBlob_password": {
+						"value": "[parameters('SFTP_AzBlob_password')]"
+					},
+					"SSISIR_staggingBlob_connectionString": {
+						"value": "[parameters('SSISIR_staggingBlob_connectionString')]"
+					},
+					"Snowflake_EN56775_password": {
+						"value": "[parameters('Snowflake_EN56775_password')]"
+					},
+					"SynapseDedictedSql_password": {
+						"value": "[parameters('SynapseDedictedSql_password')]"
+					},
+					"RestCostManagement_properties_typeProperties_url": {
+						"value": "[parameters('RestCostManagement_properties_typeProperties_url')]"
+					},
+					"Rest_AzStorage_properties_typeProperties_url": {
+						"value": "[parameters('Rest_AzStorage_properties_typeProperties_url')]"
+					},
+					"Rest_AzStorage_properties_typeProperties_aadResourceId": {
+						"value": "[parameters('Rest_AzStorage_properties_typeProperties_aadResourceId')]"
+					},
+					"RosinaAKV_properties_typeProperties_baseUrl": {
+						"value": "[parameters('RosinaAKV_properties_typeProperties_baseUrl')]"
+					},
+					"Rosina_AKV_External_properties_typeProperties_baseUrl": {
+						"value": "[parameters('Rosina_AKV_External_properties_typeProperties_baseUrl')]"
+					},
+					"SFTP_AzBlob_properties_typeProperties_host": {
+						"value": "[parameters('SFTP_AzBlob_properties_typeProperties_host')]"
+					},
+					"SFTP_AzBlob_properties_typeProperties_userName": {
+						"value": "[parameters('SFTP_AzBlob_properties_typeProperties_userName')]"
+					},
+					"SPO_Http_properties_typeProperties_url": {
+						"value": "[parameters('SPO_Http_properties_typeProperties_url')]"
+					},
+					"Snowflake_EN56775_properties_typeProperties_database": {
+						"value": "[parameters('Snowflake_EN56775_properties_typeProperties_database')]"
+					},
+					"Snowflake_EN56775_properties_typeProperties_host": {
+						"value": "[parameters('Snowflake_EN56775_properties_typeProperties_host')]"
+					},
+					"SynapseDedictedSql_properties_typeProperties_server": {
+						"value": "[parameters('SynapseDedictedSql_properties_typeProperties_server')]"
+					},
+					"SynapseDedictedSql_properties_typeProperties_database": {
+						"value": "[parameters('SynapseDedictedSql_properties_typeProperties_database')]"
+					},
+					"SynapseDedictedSql_properties_typeProperties_userName": {
+						"value": "[parameters('SynapseDedictedSql_properties_typeProperties_userName')]"
+					},
+					"StorageEvent_properties_typeProperties_scope": {
+						"value": "[parameters('StorageEvent_properties_typeProperties_scope')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ADLS_HDInsightclusterStorage_connectionString": {
+						"value": "[parameters('ADLS_HDInsightclusterStorage_connectionString')]"
+					},
+					"AzureSQLDB_connectionString": {
+						"value": "[parameters('AzureSQLDB_connectionString')]"
+					},
+					"AzureSqlMI_connectionString": {
+						"value": "[parameters('AzureSqlMI_connectionString')]"
+					},
+					"ODBC_Oracle_connectionString": {
+						"value": "[parameters('ODBC_Oracle_connectionString')]"
+					},
+					"AzureFunction1_properties_typeProperties_functionAppUrl": {
+						"value": "[parameters('AzureFunction1_properties_typeProperties_functionAppUrl')]"
+					},
+					"Dataverse_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('Dataverse_properties_typeProperties_servicePrincipalId')]"
+					},
+					"DynamicsCRM_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('DynamicsCRM_properties_typeProperties_servicePrincipalId')]"
+					},
+					"ODBC_Oracle_properties_typeProperties_userName": {
+						"value": "[parameters('ODBC_Oracle_properties_typeProperties_userName')]"
+					},
+					"OnPremMySQL_properties_typeProperties_server": {
+						"value": "[parameters('OnPremMySQL_properties_typeProperties_server')]"
+					},
+					"OnPremMySQL_properties_typeProperties_database": {
+						"value": "[parameters('OnPremMySQL_properties_typeProperties_database')]"
+					},
+					"OnPremMySQL_properties_typeProperties_username": {
+						"value": "[parameters('OnPremMySQL_properties_typeProperties_username')]"
+					},
+					"OnPrem_SQL_properties_typeProperties_server": {
+						"value": "[parameters('OnPrem_SQL_properties_typeProperties_server')]"
+					},
+					"OnPrem_SQL_properties_typeProperties_database": {
+						"value": "[parameters('OnPrem_SQL_properties_typeProperties_database')]"
+					},
+					"OnPrem_SQL_properties_typeProperties_userName": {
+						"value": "[parameters('OnPrem_SQL_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"On_PremSQL_RosinaVM_test_connectionString": {
+						"value": "[parameters('On_PremSQL_RosinaVM_test_connectionString')]"
+					},
+					"Rest_rosina112adlsgen2_servicePrincipalKey": {
+						"value": "[parameters('Rest_rosina112adlsgen2_servicePrincipalKey')]"
+					},
+					"RosinaOracleDB_connectionString": {
+						"value": "[parameters('RosinaOracleDB_connectionString')]"
+					},
+					"SalesforceLinus_clientSecret": {
+						"value": "[parameters('SalesforceLinus_clientSecret')]"
+					},
+					"SalesforceV1_password": {
+						"value": "[parameters('SalesforceV1_password')]"
+					},
+					"SalesforceV1_securityToken": {
+						"value": "[parameters('SalesforceV1_securityToken')]"
+					},
+					"Sftp_Rosina22env_password": {
+						"value": "[parameters('Sftp_Rosina22env_password')]"
+					},
+					"SharePointOnlineList1_servicePrincipalEmbeddedCert": {
+						"value": "[parameters('SharePointOnlineList1_servicePrincipalEmbeddedCert')]"
+					},
+					"REST_Graph_My365Tenant_properties_typeProperties_url": {
+						"value": "[parameters('REST_Graph_My365Tenant_properties_typeProperties_url')]"
+					},
+					"REST_Graph_My365Tenant_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('REST_Graph_My365Tenant_properties_typeProperties_servicePrincipalId')]"
+					},
+					"REST_Graph_My365Tenant_properties_typeProperties_tenant": {
+						"value": "[parameters('REST_Graph_My365Tenant_properties_typeProperties_tenant')]"
+					},
+					"REST_Graph_My365Tenant_properties_typeProperties_aadResourceId": {
+						"value": "[parameters('REST_Graph_My365Tenant_properties_typeProperties_aadResourceId')]"
+					},
+					"RestService_Graph_properties_typeProperties_url": {
+						"value": "[parameters('RestService_Graph_properties_typeProperties_url')]"
+					},
+					"RestService_Graph_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('RestService_Graph_properties_typeProperties_servicePrincipalId')]"
+					},
+					"RestService_Graph_properties_typeProperties_tenant": {
+						"value": "[parameters('RestService_Graph_properties_typeProperties_tenant')]"
+					},
+					"RestService_Graph_properties_typeProperties_aadResourceId": {
+						"value": "[parameters('RestService_Graph_properties_typeProperties_aadResourceId')]"
+					},
+					"Rest_rosina112adlsgen2_properties_typeProperties_url": {
+						"value": "[parameters('Rest_rosina112adlsgen2_properties_typeProperties_url')]"
+					},
+					"Rest_rosina112adlsgen2_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('Rest_rosina112adlsgen2_properties_typeProperties_servicePrincipalId')]"
+					},
+					"Rest_rosina112adlsgen2_properties_typeProperties_tenant": {
+						"value": "[parameters('Rest_rosina112adlsgen2_properties_typeProperties_tenant')]"
+					},
+					"Rest_rosina112adlsgen2_properties_typeProperties_aadResourceId": {
+						"value": "[parameters('Rest_rosina112adlsgen2_properties_typeProperties_aadResourceId')]"
+					},
+					"SalesforceLinus_properties_typeProperties_environmentUrl": {
+						"value": "[parameters('SalesforceLinus_properties_typeProperties_environmentUrl')]"
+					},
+					"SalesforceLinus_properties_typeProperties_clientId": {
+						"value": "[parameters('SalesforceLinus_properties_typeProperties_clientId')]"
+					},
+					"SalesforceV1_properties_typeProperties_environmentUrl": {
+						"value": "[parameters('SalesforceV1_properties_typeProperties_environmentUrl')]"
+					},
+					"SalesforceV1_properties_typeProperties_username": {
+						"value": "[parameters('SalesforceV1_properties_typeProperties_username')]"
+					},
+					"Sftp_Rosina22env_properties_typeProperties_host": {
+						"value": "[parameters('Sftp_Rosina22env_properties_typeProperties_host')]"
+					},
+					"Sftp_Rosina22env_properties_typeProperties_userName": {
+						"value": "[parameters('Sftp_Rosina22env_properties_typeProperties_userName')]"
+					},
+					"SharePointOnlineList1_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('SharePointOnlineList1_properties_typeProperties_servicePrincipalId')]"
+					},
+					"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+						"value": "[parameters('RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint')]"
+					},
+					"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+						"value": "[parameters('RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName')]"
+					},
+					"RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+						"value": "[parameters('RosinaSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword')]"
+					},
+					"AzureKeyVault_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureKeyVault_properties_privateLinkResourceId')]"
+					},
+					"AzureKeyVault_properties_groupId": {
+						"value": "[parameters('AzureKeyVault_properties_groupId')]"
+					},
+					"AzureKeyVault_properties_fqdns": {
+						"value": "[parameters('AzureKeyVault_properties_fqdns')]"
+					},
+					"AzureSqlMI_mymi_properties_privateLinkResourceId": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_privateLinkResourceId')]"
+					},
+					"AzureSqlMI_mymi_properties_groupId": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_groupId')]"
+					},
+					"AzureSqlMI_mymi_properties_fqdns": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_fqdns')]"
+					},
+					"MPE_rosinaexternalstorage_properties_privateLinkResourceId": {
+						"value": "[parameters('MPE_rosinaexternalstorage_properties_privateLinkResourceId')]"
+					},
+					"MPE_rosinaexternalstorage_properties_groupId": {
+						"value": "[parameters('MPE_rosinaexternalstorage_properties_groupId')]"
+					},
+					"MPE_rosinaexternalstorage_properties_fqdns": {
+						"value": "[parameters('MPE_rosinaexternalstorage_properties_fqdns')]"
+					},
+					"ManagedPE_ADLSgen2_properties_privateLinkResourceId": {
+						"value": "[parameters('ManagedPE_ADLSgen2_properties_privateLinkResourceId')]"
+					},
+					"ManagedPE_ADLSgen2_properties_groupId": {
+						"value": "[parameters('ManagedPE_ADLSgen2_properties_groupId')]"
+					},
+					"ManagedPE_ADLSgen2_properties_fqdns": {
+						"value": "[parameters('ManagedPE_ADLSgen2_properties_fqdns')]"
+					},
+					"PrivateLinkService_OnPremSQL_properties_privateLinkResourceId": {
+						"value": "[parameters('PrivateLinkService_OnPremSQL_properties_privateLinkResourceId')]"
+					},
+					"PrivateLinkService_OnPremSQL_properties_groupId": {
+						"value": "[parameters('PrivateLinkService_OnPremSQL_properties_groupId')]"
+					},
+					"PrivateLinkService_OnPremSQL_properties_fqdns": {
+						"value": "[parameters('PrivateLinkService_OnPremSQL_properties_fqdns')]"
+					},
+					"rosinaauestorageMPE_properties_privateLinkResourceId": {
+						"value": "[parameters('rosinaauestorageMPE_properties_privateLinkResourceId')]"
+					},
+					"rosinaauestorageMPE_properties_groupId": {
+						"value": "[parameters('rosinaauestorageMPE_properties_groupId')]"
+					},
+					"rosinaauestorageMPE_properties_fqdns": {
+						"value": "[parameters('rosinaauestorageMPE_properties_fqdns')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_2')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_4",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_4.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureBlobStorage_aue_sasUri": {
+						"value": "[parameters('AzureBlobStorage_aue_sasUri')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_3')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_5",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_5.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureSqlMI_mymi_password": {
+						"value": "[parameters('AzureSqlMI_mymi_password')]"
+					},
+					"Blob_RosinaExternalStorage_connectionString": {
+						"value": "[parameters('Blob_RosinaExternalStorage_connectionString')]"
+					},
+					"OnPremSQL_ManagedVNetConnector_password": {
+						"value": "[parameters('OnPremSQL_ManagedVNetConnector_password')]"
+					},
+					"RosinaHDIcluster_password": {
+						"value": "[parameters('RosinaHDIcluster_password')]"
+					},
+					"AzureSqlMI_mymi_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_typeProperties_server')]"
+					},
+					"AzureSqlMI_mymi_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_typeProperties_database')]"
+					},
+					"AzureSqlMI_mymi_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlMI_mymi_properties_typeProperties_userName')]"
+					},
+					"OnPremSQL_ManagedVNetConnector_properties_typeProperties_server": {
+						"value": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_server')]"
+					},
+					"OnPremSQL_ManagedVNetConnector_properties_typeProperties_database": {
+						"value": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_database')]"
+					},
+					"OnPremSQL_ManagedVNetConnector_properties_typeProperties_userName": {
+						"value": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_userName')]"
+					},
+					"RosinaADLS_gen2_properties_typeProperties_url": {
+						"value": "[parameters('RosinaADLS_gen2_properties_typeProperties_url')]"
+					},
+					"RosinaHDIcluster_properties_typeProperties_userName": {
+						"value": "[parameters('RosinaHDIcluster_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_4')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_6",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_6.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_5')]"
+			]
+		},
+		{
+			"name": "RosinaLabADF_ArmTemplate_7",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_7.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'RosinaLabADF_ArmTemplate_6')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,655 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		},
+		"SFTP_AzBlob_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SFTP_AzBlob'"
+		},
+		"SSISIR_staggingBlob_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SSISIR_staggingBlob'"
+		},
+		"Snowflake_EN56775_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Snowflake_EN56775'"
+		},
+		"SynapseDedictedSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SynapseDedictedSql'"
+		},
+		"RestCostManagement_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/query?api-version=2021-10-01"
+		},
+		"Rest_AzStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.file.core.windows.net/"
+		},
+		"Rest_AzStorage_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "https://storage.azure.com"
+		},
+		"RosinaAKV_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://Rosina-AKV.vault.azure.net/"
+		},
+		"Rosina_AKV_External_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://Rosina-AKV-External.vault.azure.net/"
+		},
+		"SFTP_AzBlob_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "rosinaauestorage.blob.core.windows.net"
+		},
+		"SFTP_AzBlob_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "rosinaauestorage.azureuser"
+		},
+		"SPO_Http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://m365x68336840.sharepoint.com/sites/RosinaSite/_api/web/"
+		},
+		"Snowflake_EN56775_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ROSINASNOWFLAKE"
+		},
+		"Snowflake_EN56775_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "qaggkyi-en56775.snowflakecomputing.com"
+		},
+		"SynapseDedictedSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "tcp:rosinasynapse.sql.azuresynapse.net,1433"
+		},
+		"SynapseDedictedSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "RosinaDeicatedSqlPool"
+		},
+		"SynapseDedictedSql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"StorageEvent_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaauestorage"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/RestCostManagement')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestCostManagement_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Rest_AzStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('Rest_AzStorage_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "ManagedServiceIdentity",
+					"aadResourceId": "[parameters('Rest_AzStorage_properties_typeProperties_aadResourceId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RosinaAKV')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('RosinaAKV_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Rosina_AKV_External')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('Rosina_AKV_External_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SFTP_AzBlob')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Sftp",
+				"typeProperties": {
+					"host": "[parameters('SFTP_AzBlob_properties_typeProperties_host')]",
+					"port": 22,
+					"skipHostKeyValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('SFTP_AzBlob_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('SFTP_AzBlob_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SPO_Http')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "https://[site-url]/_api/web/GetFileByServerRelativeUrl('[relative-path-to-file]')/$value",
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('SPO_Http_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SSISIR_staggingBlob')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('SSISIR_staggingBlob_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Snowflake_EN56775')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "https://qaggkyi-en56775.snowflakecomputing.com\nUsername ROSINAWANG\n",
+				"parameters": {
+					"JSON": {
+						"type": "string",
+						"defaultValue": {
+							"name": "Snowflake_EN56775",
+							"properties": {
+								"type": "SnowflakeV2",
+								"description": "https://qaggkyi-en56775.snowflakecomputing.com\nUsername ROSINAWANG\n",
+								"annotations": [],
+								"typeProperties": {
+									"authenticationType": "Basic",
+									"accountIdentifier": "EN56775",
+									"user": "ROSINAWANG",
+									"database": "ROSINASNOWFLAKE",
+									"warehouse": "ROSINA_WAREHOUSE",
+									"host": "qaggkyi-en56775.snowflakecomputing.com",
+									"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUxM0E3Q0M4LTNBRkEtNDk2MS1BRjA5LTM5RTcxRkVGMTAzMV9jMjM0MTMwYy04MDVmLTRkZGEtYWY2NC0xMDk3YmJmNTY5YjgiDQp9"
+								}
+							},
+							"type": "Microsoft.DataFactory/factories/linkedservices"
+						}
+					}
+				},
+				"annotations": [],
+				"type": "SnowflakeV2",
+				"typeProperties": {
+					"authenticationType": "Basic",
+					"accountIdentifier": "EN56775",
+					"user": "ROSINAWANG",
+					"database": "[parameters('Snowflake_EN56775_properties_typeProperties_database')]",
+					"warehouse": "ROSINA_WAREHOUSE",
+					"host": "[parameters('Snowflake_EN56775_properties_typeProperties_host')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('Snowflake_EN56775_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SynapseDedictedSql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('SynapseDedictedSql_properties_typeProperties_server')]",
+					"database": "[parameters('SynapseDedictedSql_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('SynapseDedictedSql_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('SynapseDedictedSql_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/StorageEvent')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/data/blobs/EventTrigger/",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('StorageEvent_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Rosina-SHIR')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RosinaTestSHIR')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SEA-AzureIR')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "Southeast Asia",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/credential1')]",
+			"type": "Microsoft.DataFactory/factories/credentials",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {
+					"resourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.ManagedIdentity/userAssignedIdentities/RosinaUAMI"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/credential2')]",
+			"type": "Microsoft.DataFactory/factories/credentials",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {
+					"resourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.ManagedIdentity/userAssignedIdentities/RosinaUAMI"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CRM OData API get SPO file metadata')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This will not work for \"sharepointdocuments\" by-design, CRM API has limitation that cannot fetch multi-item, the result will be emplty. If use fetch query. will see 401 failure. CRM team suggest cx to use other methods instead of Odata.",
+				"activities": [
+					{
+						"name": "GraphAPI list children works",
+						"description": "GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root:/{path-relative-to-root}:/children\n\nhttps://graph.microsoft.com/v1.0/drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/Shared%20Documents/MyFiles:/children\n",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat('https://graph.microsoft.com/v1.0/drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": {
+									"value": "@pipeline().parameters.TenantID",
+									"type": "Expression"
+								},
+								"username": {
+									"value": "@pipeline().parameters.ClientID",
+									"type": "Expression"
+								},
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "Get sharepointdocuments",
+						"description": "CRM API has limitation that cannot fetch multi-item, the result will be emplty",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Dynamics API Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get Dynamics API Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"url": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/sharepointdocuments"
+						}
+					},
+					{
+						"name": "Get Dynamics API Token",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Application Client Key from AKV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": {
+								"value": "@concat('https://login.microsoftonline.com/',pipeline().parameters.TenantID,'/oauth2/v2.0/token')",
+								"type": "Expression"
+							},
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=',pipeline().parameters.ClientID,'&client_secret=',activity('Get Application Client Key from AKV').output.value,'&scope=',pipeline().parameters.YourDynamicURL,'/.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Application Client Key from AKV",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat(pipeline().parameters.ClientKeyAkvUrl,'?api-version=7.0')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"YourDynamicURL": {
+						"type": "string",
+						"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+					},
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+					},
+					"ClientID": {
+						"type": "string",
+						"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+					},
+					"ClientKeyAkvUrl": {
+						"type": "string",
+						"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+					},
+					"DriverID": {
+						"type": "string",
+						"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+					},
+					"FolderPath": {
+						"type": "string",
+						"defaultValue": "/root:/MyFiles"
+					}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:47Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaAKV')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Databricks Notebook')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Test Notebook"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDatabricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:47Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline-functionapp')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "{\n    \"name\": \"pipeline1\",\n    \"properties\": {\n        \"activities\": [\n            {\n                \"name\": \"Web1\",\n                \"type\": \"WebActivity\",\n                \"dependsOn\": [],\n                \"policy\": {\n                    \"timeout\": \"0.12:00:00\",\n                    \"retry\": 0,\n                    \"retryIntervalInSeconds\": 30,\n                    \"secureOutput\": false,\n                    \"secureInput\": false\n                },\n                \"userProperties\": [],\n                \"typeProperties\": {\n                    \"enableTLS13\":true,\n                    \"method\": \"GET\",\n                    \"url\": \"https://rosinafunctionapptest.azurewebsites.net/api/http_trigger1?name=Rosina\",\n                    \"connectVia\": {\n                        \"referenceName\": \"Rosina-SHIR\",\n                        \"type\": \"IntegrationRuntimeReference\"\n                    }\n                }\n            }\n        ],\n        \"annotations\": []\n    }\n}",
+				"activities": [
+					{
+						"name": "Web1",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosinafunctionapptest.azurewebsites.net/api/http_trigger1?name=Rosina",
+							"connectVia": {
+								"referenceName": "Rosina-SHIR",
+								"type": "IntegrationRuntimeReference"
+							},
+							"enableTLS13": true
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/Rosina-SHIR')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSFTP_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SFTP_AzBlob",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "SftpLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "/output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SFTP_AzBlob')]"
+			]
+		}
+	]
+}

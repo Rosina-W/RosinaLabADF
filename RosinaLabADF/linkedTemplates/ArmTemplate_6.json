@@ -1,0 +1,3933 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflowSplit')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink2"
+						},
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink0"
+						}
+					],
+					"transformations": [
+						{
+							"name": "split1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ID as integer,",
+						"          NAME as string,",
+						"          VALUE as double",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: true,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     fileName: 'sink.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true) ~> source1",
+						"source1 split(greater(VALUE,10),",
+						"     greater(VALUE,3),",
+						"     disjoint: true) ~> split1@(Rule1, Rul2, Rul0)",
+						"split1@Rule1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     partitionFileNames:['SinkRule1.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1",
+						"split1@Rul2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: false,",
+						"     partitionFileNames:['SinkRule2.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink2",
+						"split1@Rul0 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: false,",
+						"     partitionFileNames:['SinkRule0.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink0"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_testProjectionDatetimeFormat')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          ID as short,",
+						"          ModifiedDatetime as timestamp 'yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'',",
+						"          Value as short",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: true,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     fileName: 'input.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     dateFormats: ['MM/dd/yyyy','dd/MM/yyyy','yyyy/MM/dd','MM-dd-yyyy','yyyy-MM-dd','dd-MM-yyyy','dd.MM.yyyy','MM.dd.yyyy','yyyy.MM.dd'],",
+						"     timestampFormats: ['yyyy-MM-dd','MM/dd/yyyy','dd/MM/yyyy','yyyy/MM/dd','MM/dd/yyyy HH:mm:ss','MM-dd-yyyy','MM/dd/yyyy hh:mm:ss a','dd-MM-yyyy','MM-dd-yyyy HH:mm:ss','MM-dd-yyyy hh:mm:ss a','dd.MM.yyyy','MM.dd.yyyy','yyyy.MM.dd','yyyy.MM.dd HH:mm:ss','yyyy.MM.dd hh:mm:ss a','yyyy-MM-dd\\'T\\'HH:mm:ss','yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'','yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\'']) ~> source1",
+						"source1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          {459825} as integer,",
+						"          {9E0B6b62Ce31B7c} as string,",
+						"          {Holmes-Herman} as string,",
+						"          {https://patton-huerta.biz/} as string,",
+						"          {Cook Islands} as string,",
+						"          {Object-based disintermediate leverage} as string,",
+						"          {1999} as short,",
+						"          Machinery as string,",
+						"          {2167} as short",
+						"     ),",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     partitionFileNames:['sinkDatetime_importedProjection.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Databricks Delta Lake')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureDatabricksDeltaLakeSink",
+								"importSettings": {
+									"type": "AzureDatabricksDeltaLakeImportCommand"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "ParquetV2_FutureTime_Varchar50.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DatabricksDeltaLakeDataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Dynamics CRM')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "https://make.powerapps.com/environments/Default-d1becd49-3f8d-435f-8618-f112b530e54c/entities?tenant=d1becd49-3f8d-435f-8618-f112b530e54c",
+				"activities": [
+					{
+						"name": "CRM attribute value ordered",
+						"description": "MyEntity1:\nTotal 46744 rows.\nrandomly 6191 rows has not null values.\n\ngot 12118 rows with\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n\ngot 46744 rows with \n<all-attributes />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DynamicsCrmSource",
+								"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DynamicsCRM_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "CRM smallset attribute value ordered",
+						"description": "MyEntity_Small :\n1-15 rows value are nulls,\n16-30 rows value are not null values,\n30 rows in total\n\n",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DynamicsCrmSource",
+								"query": "<fetch>\n    <entity name=\"cr4fc_myentity_small\" >\n        <attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />      \n            <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DynamicsCRM_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Copy Dynamics All attributes ordered",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DynamicsCrmSource",
+								"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n     <all-attributes />\n     <order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DynamicsCRM_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Set 46744_Value_Order",
+						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "CRM attribute value ordered",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Rows_46744_Value_Order",
+							"value": {
+								"value": "@activity('CRM attribute value ordered').output.rowsRead",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set 30_Value_Order",
+						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "CRM smallset attribute value ordered",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Rows_30_Value_Order",
+							"value": {
+								"value": "@activity('CRM smallset attribute value ordered').output.rowsRead",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set 46744_All_Order",
+						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Copy Dynamics All attributes ordered",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Rows_46744_All_Order",
+							"value": {
+								"value": "@activity('Copy Dynamics All attributes ordered').output.rowsRead",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "CRM attribute value ordered Dataverse",
+						"description": "MyEntity1:\nTotal 46744 rows.\nrandomly 6191 rows has not null values.\n\ngot 12118 rows with\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n\ngot 46744 rows with \n<all-attributes />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "DataverseEntity",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"Rows_46744_Value_Order": {
+						"type": "Integer",
+						"defaultValue": 0
+					},
+					"Rows_30_Value_Order": {
+						"type": "Integer",
+						"defaultValue": 0
+					},
+					"Rows_46744_All_Order": {
+						"type": "Integer",
+						"defaultValue": 0
+					},
+					"results": {
+						"type": "Array"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy JSON to SP')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "for AVA 2409180030000021",
+				"activities": [
+					{
+						"name": "JSON to SP",
+						"description": "",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"additionalColumns": [
+									{
+										"name": "fldMarketDataImportFileName",
+										"value": "$$FILENAME"
+									},
+									{
+										"name": "fldRecordUpdatedUserName",
+										"value": {
+											"value": "adfProcess",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "fldMarketDataImportSource",
+										"value": {
+											"value": "BBG",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "fldNotes",
+										"value": {
+											"value": "ADFsink_Table",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": true
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['DL_SNAPSHOT_START_TIME']"
+										},
+										"sink": {
+											"name": "RetrievedDateTime",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['DL_SNAPSHOT_TZ']"
+										},
+										"sink": {
+											"name": "RetrievedDateTimeTZ",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['IDENTIFIER']"
+										},
+										"sink": {
+											"name": "BBGItem",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['RC']"
+										},
+										"sink": {
+											"name": "BBGErrorCode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['PX_LAST']"
+										},
+										"sink": {
+											"name": "BBGValue",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldRecordUpdatedUserName']"
+										},
+										"sink": {
+											"name": "fldRecordUpdatedUserName",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldMarketDataImportSource']"
+										},
+										"sink": {
+											"name": "fldMarketDataImportSource",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['LAST_UPDATE_DT']"
+										},
+										"sink": {
+											"name": "BBGLastUpdateDate",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldMarketDataImportFileName']"
+										},
+										"sink": {
+											"name": "fldMarketDataImportFileName",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldNotes']"
+										},
+										"sink": {
+											"name": "fldNotes",
+											"type": "String"
+										}
+									}
+								],
+								"mapComplexValuesToString": false
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": "DataTable",
+									"SchemaName": "dbo"
+								}
+							}
+						]
+					},
+					{
+						"name": "CSV to SP",
+						"description": "",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "JSON to CSV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"sqlWriterStoredProcedureName": "[[dbo].[uspMarketDataInsert]",
+								"sqlWriterTableType": "typeDataTable",
+								"storedProcedureTableTypeParameterName": "MarketDataImport",
+								"disableMetricsCollection": true
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "fldMarketDataImportSource",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "fldMarketDataImportSource",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "fldMarketDataImportFileName",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "fldMarketDataImportFileName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "BBGErrorCode",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "BBGErrorCode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "BBGLastUpdateDate",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "BBGLastUpdateDate",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "fldRecordUpdatedUserName",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "fldRecordUpdatedUserName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "RetrievedDateTime",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "RetrievedDateTime",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "RetrievedDateTimeTZ",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "RetrievedDateTimeTZ",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "fldNotes",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "fldNotes",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "BBGValue",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "BBGValue",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "BBGItem",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "BBGItem",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": "JsonOutput",
+									"SchemaName": "dbo"
+								}
+							}
+						]
+					},
+					{
+						"name": "JSON to CSV",
+						"description": "",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"additionalColumns": [
+									{
+										"name": "fldMarketDataImportFileName",
+										"value": "$$FILENAME"
+									},
+									{
+										"name": "fldRecordUpdatedUserName",
+										"value": {
+											"value": "adfProcess",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "fldMarketDataImportSource",
+										"value": {
+											"value": "BBG",
+											"type": "Expression"
+										}
+									},
+									{
+										"name": "fldNotes",
+										"value": {
+											"value": "Loaded by ADF",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['DL_SNAPSHOT_START_TIME']"
+										},
+										"sink": {
+											"name": "RetrievedDateTime",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['DL_SNAPSHOT_TZ']"
+										},
+										"sink": {
+											"name": "RetrievedDateTimeTZ",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['IDENTIFIER']"
+										},
+										"sink": {
+											"name": "BBGItem",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['RC']"
+										},
+										"sink": {
+											"name": "BBGErrorCode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['PX_LAST']"
+										},
+										"sink": {
+											"name": "BBGValue",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['LAST_UPDATE_DT']"
+										},
+										"sink": {
+											"name": "BBGLastUpdateDate",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldMarketDataImportFileName']"
+										},
+										"sink": {
+											"name": "fldMarketDataImportFileName",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldRecordUpdatedUserName']"
+										},
+										"sink": {
+											"name": "fldRecordUpdatedUserName",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldMarketDataImportSource']"
+										},
+										"sink": {
+											"name": "fldMarketDataImportSource",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['fldNotes']"
+										},
+										"sink": {
+											"name": "fldNotes",
+											"type": "String"
+										}
+									}
+								],
+								"mapComplexValuesToString": false
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Oracle')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copy Oracle with query and partition",
+						"description": "if oracle source is: 【using query + using Dynamic range partition + do not want to set upper and lower bounds】\nThen:\nyou need to choose the table name in dataset and confirm that table contains the column you used for partition",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT \n   *\nFROM \n    ONEDRIVE_SINK o\nJOIN \n    ONEDRIVE_SINK1 s\nON \n    o.NO = s.ID \nWHERE ?AdfRangePartitionColumnName <= ?AdfRangePartitionUpbound AND ?AdfRangePartitionColumnName >= ?AdfRangePartitionLowbound;",
+								"partitionOption": "DynamicRange",
+								"partitionSettings": {
+									"partitionColumnName": "ID",
+									"partitionUpperBound": "",
+									"partitionLowerBound": ""
+								},
+								"convertDecimalToInteger": false,
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".csv"
+								}
+							},
+							"enableStaging": false,
+							"parallelCopies": 4,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OracleTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Parquet V1 and V2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy SQL to ParquetV2",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "Select * from dbo.testFutureTime t0 where t0.AdmitDtm=convert(datetime,'8888-01-01 00:02:00')",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "On_PremSQL_Table_test",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": "testFutureTime"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V2_manualMapped.parquet"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy parquetV2 back to SQL",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy SQL to ParquetV2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "CreatedWhen",
+											"type": "DateTime",
+											"physicalType": "INT96"
+										},
+										"sink": {
+											"name": "CreatedWhen",
+											"type": "DateTime",
+											"physicalType": "datetime2"
+										}
+									},
+									{
+										"source": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "INT_32"
+										},
+										"sink": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "AdmitDtm",
+											"type": "DateTime",
+											"physicalType": "INT96"
+										},
+										"sink": {
+											"name": "AdmitDtm",
+											"type": "DateTime",
+											"physicalType": "datetime2"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V2_manualMapped.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "On_PremSQL_Table_test",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": "testFutureTime_Output_V2"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy parquetV2 to csv",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy SQL to ParquetV2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V2_manualMapped.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "ParquetV2_output.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy SQL to ParquetV1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "On_PremSQL_Table_test",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": "testFutureTime"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V1_manualMapped.parquet"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy parquetV1 back to SQL",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy SQL to ParquetV1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "CreatedWhen",
+											"type": "DateTime",
+											"physicalType": "INT96"
+										},
+										"sink": {
+											"name": "CreatedWhen",
+											"type": "DateTime",
+											"physicalType": "datetime2"
+										}
+									},
+									{
+										"source": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "INT32"
+										},
+										"sink": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "AdmitDtm",
+											"type": "DateTime",
+											"physicalType": "INT96"
+										},
+										"sink": {
+											"name": "AdmitDtm",
+											"type": "DateTime",
+											"physicalType": "datetime2"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V1_manualMapped.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "On_PremSQL_Table_test",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": "testFutureTime_Output_V1"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy parquetV1 to csv_copy1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy SQL to ParquetV1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "V1_manualMapped.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "ParquetV1_output.csv"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Parquet files with dif type')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"wildcardFolderPath": "input/ParquetFiles",
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "7b36.zstd.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": "Sink_Parquet_Combined",
+									"SchemaName": "dbo"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Parquet to Snowflake')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data to ParquetV2",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OnPrem_SQL_Table",
+								"type": "DatasetReference",
+								"parameters": {
+									"SchemaName": "Production",
+									"TableName": "ProductCategory"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "BlobStorage_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "ParquetV2_FutureTime_Varchar50.parquet"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy ParquetV2 to Snowflake",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy data to ParquetV2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SnowflakeV2Sink",
+								"importSettings": {
+									"type": "SnowflakeImportCopyCommand"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "BlobStorage_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "ParquetV2_FutureTime_Varchar50.parquet"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SnowflakeTable_ROSINASNOWFLAKE",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy Parquet with SHIR')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink1.csv"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Parquet",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sinktest.parquet"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy REST FileShare to ADLS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy from azure file share",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"x-ms-version": "2023-08-03",
+									"x-ms-file-request-intent": "backup",
+									"x-ms-date": {
+										"value": "@concat(formatDateTime(utcnow(),'ddd, dd MMM yyyy hh:mm:ss'),' ','GMT')",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_AzureFS",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "RosinaADLS_gen2_CSV",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy REST FileShare to ADLS_SHIR')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy from azure file share",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"x-ms-version": "2023-08-03",
+									"x-ms-file-request-intent": "backup",
+									"x-ms-date": {
+										"value": "@concat(formatDateTime(utcnow(),'ddd, dd MMM yyyy hh:mm:ss'),' ','GMT')",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_AzureFS_112",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy SFTP with Delete after completion')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy binary from SFTP to ADLS",
+						"description": "Adding \"includeSpecialFiles\": true, to this activity JSON for source settings\nRef: https://supportability.visualstudio.com/AzureDataFactory/_wiki/wikis/AzureDataFactory/611509/Copy-Soft-links-using-Copy-activity",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "SftpReadSettings",
+									"includeSpecialFiles": true,
+									"recursive": true,
+									"deleteFilesAfterCompletion": true,
+									"disableChunking": false
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "Binary_SFTP",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Delete1",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "Binary_SFTP",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "RosinaADLS_gen2",
+									"type": "LinkedServiceReference"
+								},
+								"path": "stagging"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "SftpReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false,
+								"disableChunking": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy SPO file with SPN key')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Bearer Token",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get App Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7ef@d1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy SPO file to ADLS",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@concat('Authorization: Bearer ',activity('Get Bearer Token').output.access_token)",
+										"type": "Expression"
+									}
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SPO_file_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Get SPO file",
+						"description": "Option1: Use REST",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get Bearer Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"url": "https://m365x68336840.sharepoint.com/sites/RosinaSite/_api/web/GetFileByServerRelativeUrl('/sites/RosinaSite/Shared%20Documents/MyFiles/Test_Excel.xlsx')/$value"
+						}
+					},
+					{
+						"name": "Get Graph download URL",
+						"description": "Option2: use Graph Http\n\n拿到graph ID\nhttps://graph.microsoft.com/v1.0/sites/healthqld.sharepoint.com,076c1ecf-c935-4102-b428-c69dc6f4b1be,c74109fb-021f-40f6-9625-3f63114975e8/drives\n\n拿到binary：\nhttps://graph.microsoft.com/v1.0/sites/healthqld.sharepoint.com,076c1ecf-c935-4102-b428-c69dc6f4b1be,c74109fb-021f-40f6-9625-3f63114975e8/drive/root:/Shared%20Documents/Mapping.xlsx:/content",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": "Bearer+ token"
+							},
+							"url": "https://graph.microsoft.com/v1.0/sites/healthqld.sharepoint.com,076c1ecf-c935-4102-b428-c69dc6f4b1be,c74109fb-021f-40f6-9625-3f63114975e8/drives/b!zx5sBzXJAkG0KMadxvSxvvsJQccfAvZAliU_YxFJdehb0nxyLtQDQbrO8xFnXe3l/root:/Mapping.xlsx"
+						}
+					},
+					{
+						"name": "Web2",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Graph download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@activity('Get Graph download URL').output['microsoft.graph.downloadUrl']",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get App Client Key",
+						"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SharePointOnlineListSource",
+								"httpRequestTimeout": "00:05:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SharePointOnlineListDataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink1.csv"
+								}
+							}
+						]
+					},
+					{
+						"name": "Get SPO file_InlineSPNAuth",
+						"description": "SPO cannot use inline auth",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://m365x68336840.sharepoint.com/sites/RosinaSite/_api/web/GetFileByServerRelativeUrl('/sites/RosinaSite/Shared%20Documents/MyFiles/Test_Excel.xlsx')/$value",
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+								"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+								"resource": {
+									"value": "@concat('00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+									"type": "Expression"
+								},
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "Get Bearer Token_copy1",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get App Client Key_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7efd1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key_copy1').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.comd1becd49-3f8d-435f-8618-f112b530e54c')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get App Client Key_copy1",
+						"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy SPO-GraphAPI file')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get SPO site file Download URL",
+						"description": "URL:\nGET https://graph.microsoft.com/v1.0/sites/{site-id}/drives/{drive-id}/root:/{file-path}\nAuthorization: Bearer {access_token}\n\nRef https://learn.microsoft.com/en-us/graph/api/site-getbypath?view=graph-rest-1.0\n\nGet UserID from M365 admin center:\nhttps://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantOverview.ReactView?Microsoft_AAD_IAM_legacyAADRedirect=true\n\nShow more -> Identity -> Users -> The user -> ObjectID",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat('https://graph.microsoft.com/v1.0/sites/',pipeline().parameters.SiteID,'/drives/',pipeline().parameters.DriverID,'/root:/',pipeline().parameters.FilePath)",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+								"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "GraphAPI Get SiteID",
+						"description": "GET https://graph.microsoft.com/v1.0/sites/{hostname}:/{site-path}\nAuthorization: Bearer {access_token}\n\n{hostname}: SharePoint站点的主机名，例如yourdomain.sharepoint.com\n{site-path}: SharePoint站点的路径，例如/sites/yoursite",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://graph.microsoft.com/v1.0/sites/m365x68336840.sharepoint.com:/sites/RosinaSite",
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+								"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "GraphAPI Get DriverID",
+						"description": "GET https://graph.microsoft.com/v1.0/sites/{site-id}/drives\nAuthorization: Bearer {access_token}\nResponse Example:\n{\n    \"value\": [\n        {\n            \"id\": \"drive-id\",\n            \"name\": \"Documents\",\n            ...\n        }\n    ]\n}\n",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "GraphAPI Get SiteID",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat('https://graph.microsoft.com/v1.0/sites/',activity('GraphAPI Get SiteID').output.id,'/drives')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+								"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "Copy Graph SPO file to ADLS",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get SPO site file Download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "HttpBinaryDataset",
+								"type": "DatasetReference",
+								"parameters": {
+									"downloadUrl": {
+										"value": "@activity('Get SPO site file Download URL').output['@microsoft.graph.downloadUrl']",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"SiteID": {
+						"type": "string",
+						"defaultValue": "m365x68336840.sharepoint.com,dc84c581-b5cf-48ed-bc7d-7c98ef9452ef,3bc450f7-e42f-4973-a025-4ff057d06449"
+					},
+					"DriverID": {
+						"type": "string",
+						"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+					},
+					"FilePath": {
+						"type": "string",
+						"defaultValue": "MyFiles/Book.xlsx"
+					}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy SPO-http with SPN cert not-working yet')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Followed：https://github.com/Chunlong101/SharePointTips/blob/master/Get%20access%20token%20with%20a%20certificate%20to%20call%20sharepoint%20rest%20api%20and%20graph%20api/README.md",
+				"activities": [
+					{
+						"name": "Get OAuthToken with X509Cert JWT token",
+						"description": "RUN PowerShell (use AAD app)\n‪cd <PS script file path>\n.\\GetClientAssertion.ps1 -clientId 'f43557ff-9a53-430c-8054-700fde9500d8' -tenantId 'd1becd49-3f8d-435f-8618-f112b530e54c' -scope 'https://m365x68336840.sharepoint.com/.default'",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get client_assertion",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-type": "application/x-www-form-urlencoded",
+								"Accept": "application/json"
+							},
+							"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('scope=https://m365x68336840.sharepoint.com/.default&client_id=f43557ff-9a53-430c-8054-700fde9500d8&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=',activity('Get client_assertion').output.value)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get client_assertion",
+						"description": "To generate JWT token (client_assertion), follow https://github.com/Chunlong101/SharePointTips/blob/46146e6517c15e1548b196f9b3f82a5ff086b2ac/Get%20access%20token%20with%20a%20certificate%20to%20call%20sharepoint%20rest%20api%20and%20graph%20api/GetAccessTokenByCert.ps1#L2\n\nStored In Rosina-AKV\nRosinaSPO-ServicePrincipal-AADappCert-clientAssertion-JWT-token\n\n# ----- \n# Step 1: Create a self-signed certificate, you can skip this step if you already have a one\n# ----- \n\n\n$CERT_NAME = \"MyX509Cert_AAD\" # need replace\n$CERT_PATH = \"C:\\Self-AssignedX509Cert\" # need replace\n$CERT_Store = \"Cert:\\CurrentUser\\My\" # MMC >> Add/Remove Snap-ins >> Certificates >> Current User >> Personal >> Your Certificates\n$CERT_Subject = \"CN=$($CERT_NAME)\"\n\n$cert = New-SelfSignedCertificate -Subject $CERT_Subject -CertStoreLocation $CERT_Store -KeyExportPolicy Exportable -KeySpec Signature -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256 -Provider \"Microsoft Enhanced RSA and AES Cryptographic Provider\"\n\n#Set-ExecutionPolicy RemoteSigned #Unrestricted; may error due to policy,export manually\nExport-Certificate -Cert $cert -FilePath \"$CERT_PATH\\$($CERT_NAME).cer\" -Force\n\n# Private key to Base64, not used for current scenario\n$privateKey = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($cert)\n$privateKeyBytes = $privateKey.Key.Export([System.Security.Cryptography.CngKeyBlobFormat]::Pkcs8PrivateBlob)\n$privateKeyBase64 = [System.Convert]::ToBase64String($privateKeyBytes, [System.Base64FormattingOptions]::InsertLineBreaks)\n$privateKeyString = @\"\n-----BEGIN PRIVATE KEY-----\n$privateKeyBase64\n-----END PRIVATE KEY-----\n\"@\n \n# Print private key to output\nWrite-Host $privateKeyString\n\n# ----- \n# Step 2: Configure your app in azure app registrations\n# ----- \n\n<# Open Azure Portal >> App registrations >> Your app >> Configure your app with proper SharePoint/Graph permissions, upload the certifcate to Azure App #>\n\n# ----- \n# Step 3: Get the access token with the certificate to call SharePoint REST API and Graph API\n# ----- \n\n# Define the Azure AD tenant ID and app client ID\n$tenantId = \"d1becd49-3f8d-435f-8618-f112b530e54c\"  # need replace\n$clientId = \"f43557ff-9a53-430c-8054-700fde9500d8\"  # need replace\n$CERT_Store = \"Cert:\\CurrentUser\\My\" # need replace\n$CERT_NAME = \"MyX509Cert_AAD\" # need replace\n$CERT_Subject = \"CN=$($CERT_NAME)\"\n\n<# Define the certificate thumbprint\n$thumbprint = \"9a2323356ba9c2c09753a0258bff8ae722b8687b\" #\"YOUR_CERTIFICATE_THUMBPRINT\"\n$cert = Get-Item Cert:\\CurrentUser\\My\\$Thumbprint  #CurrentUser/LocalMachine\n#>\n$cert = Get-ChildItem -Path $CERT_Store | Where-Object { $_.Subject -Match $CERT_Subject } # | Select-Object FriendlyName, Thumbprint, Subject, NotBefore, NotAfter\n$scope = \"https://m365x68336840.sharepoint.com\"  # need replace\n<# for Graph api call test\n$scope=\"https://graph.microsoft.com\"\n#>\n\n# Function to generate a JWT token (client_assertion)\nfunction GenerateJWT ($cert, $clientId, $tenantId, $scope) {\n    $hash = $cert.GetCertHash()\n    $hashValue = [System.Convert]::ToBase64String($hash) -replace '\\+', '-' -replace '/', '_' -replace '='\n\n    $exp = ([DateTimeOffset](Get-Date).AddHours(1).ToUniversalTime()).ToUnixTimeSeconds()\n    $nbf = ([DateTimeOffset](Get-Date).ToUniversalTime()).ToUnixTimeSeconds()\n\n    $jti = New-Guid\n    [hashtable]$header = @{alg = \"RS256\"; typ = \"JWT\"; x5t = $hashValue }\n    [hashtable]$payload = @{aud = \"https://login.microsoftonline.com/$tenantId/oauth2/token\"; iss = \"$clientId\"; sub = \"$clientId\"; jti = \"$jti\"; exp = $Exp; Nbf = $Nbf }\n\n    $headerjson = $header | ConvertTo-Json -Compress\n    $payloadjson = $payload | ConvertTo-Json -Compress\n\n    $headerjsonbase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($headerjson)).Split('=')[0].Replace('+', '-').Replace('/', '_')\n    $payloadjsonbase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($payloadjson)).Split('=')[0].Replace('+', '-').Replace('/', '_')\n\n    $toSign = [System.Text.Encoding]::UTF8.GetBytes($headerjsonbase64 + \".\" + $payloadjsonbase64)\n\n    $rsa = $cert.PrivateKey # -as [System.Security.Cryptography.RSACryptoServiceProvider]\n\n    $signature = [Convert]::ToBase64String($rsa.SignData($toSign, [Security.Cryptography.HashAlgorithmName]::SHA256, [Security.Cryptography.RSASignaturePadding]::Pkcs1)) -replace '\\+', '-' -replace '/', '_' -replace '='\n\n    $token = \"$headerjsonbase64.$payloadjsonbase64.$signature\"\n\n    return $token # client_assertion\n}\n\n# Get the client_assertion\n$RequestToken = GenerateJWT -cert $cert -clientId $clientId -tenantId $tenantId -scope $scope\n\n# Output the access token\n# Write-Output \"client_assertion: $AccessToken\"\n\n$RequestTokenString = @\"\n-----BEGIN client_assertion-----\n$RequestToken\n-----END client_assertion-----\n\"@\n \n# Print private key to output\nWrite-Host $RequestTokenString\n",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-AADappCert-clientAssertion-JWT-token/c877718944e9494dba3662d4a519b9fb?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Copy SPO with Cert Auth",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get OAuthToken with X509Cert JWT token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@{concat('Authorization: Bearer ', activity('Get OAuthToken with X509Cert JWT token').output.access_token)}",
+										"type": "Expression"
+									},
+									"requestTimeout": ""
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "SPO_file_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Binary",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy SQL to Parquet V2 with Datetime as INT64')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_SQL2LH_DatetimeINT64",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "ID",
+											"type": "Int32",
+											"physicalType": "INT_32"
+										}
+									},
+									{
+										"source": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "UTF8"
+										}
+									},
+									{
+										"source": {
+											"name": "LastUpdateDatetime",
+											"type": "DateTime",
+											"physicalType": "datetime"
+										},
+										"sink": {
+											"name": "LastUpdateDatetime",
+											"type": "DateTime",
+											"physicalType": "INT_64"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Azure_SQL_Table",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": "DatetimeDS",
+									"SchemaName": "dbo"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Parquet_V2",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "Copy_SQL2LH_DatetimeINT64_sink.parquet"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CostManagement API - Billing')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Billing",
+				"activities": [
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Query CostManagement",
+						"description": "Note that cost management has build-in export method which allow schdule export to Storage",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get APP Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/query?api-version=2021-10-01",
+							"body": {
+								"type": "Usage",
+								"timeframe": "MonthToDate",
+								"dataset": {
+									"granularity": "Daily",
+									"aggregation": {
+										"totalCost": {
+											"name": "PreTaxCost",
+											"function": "Sum"
+										}
+									}
+								}
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/27dabd3fb095403dbf524816451d4185?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get APP Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:02:00",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "POST",
+								"requestBody": "{\"type\":\"Usage\",\"timeframe\":\"MonthToDate\",\"dataset\":{\"granularity\":\"Daily\",\"aggregation\":{\"totalCost\":{\"name\":\"PreTaxCost\",\"function\":\"Sum\"}}}}",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+										"type": "Expression"
+									},
+									"Content-Type": "application/json"
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings",
+									"copyBehavior": "FlattenHierarchy"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"filePattern": "setOfObjects"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "Rest_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Generate Cost Details Report",
+						"description": "https://learn.microsoft.com/en-us/rest/api/cost-management/generate-cost-details-report/create-operation?view=rest-cost-management-2023-11-01&tabs=HTTP#generatecostdetailsreportbycustomerandtimeperiod\n\nScopes to use\nhttps://learn.microsoft.com/en-us/azure/cost-management-billing/costs/understand-work-scopes",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get APP Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2022-05-01",
+							"body": {
+								"metric": "ActualCost",
+								"timePeriod": {
+									"start": "2024-08-01",
+									"end": "2024-09-01"
+								}
+							}
+						}
+					},
+					{
+						"name": "Copy Details Report to ADLS",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Generate Cost Details Report",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Http_CSV",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@activity('Generate Cost Details Report').output.manifest.blobs[0].blobLink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:48Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Graph API - list children')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GraphAPI list children works",
+						"description": "GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root:/{path-relative-to-root}:/children\n\nhttps://graph.microsoft.com/v1.0/drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/Shared%20Documents/MyFiles:/children\n",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat('https://graph.microsoft.com/v1.0/drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": {
+									"value": "@pipeline().parameters.TenantID",
+									"type": "Expression"
+								},
+								"username": {
+									"value": "@pipeline().parameters.ClientID",
+									"type": "Expression"
+								},
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=f43557ff-9a53-430c-8054-700fde9500d8&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"description": "RosinaSPO-ServicePrincipal-Key",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['@odata.context']"
+										},
+										"sink": {
+											"name": "@@odata.context"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['@microsoft.graph.downloadUrl']"
+										},
+										"sink": {
+											"name": "@@microsoft.graph.downloadUrl"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['createdBy']['user']['email']"
+										},
+										"sink": {
+											"name": "value'][0]['createdBy_user_email"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['createdBy']['user']['id']"
+										},
+										"sink": {
+											"name": "value'][0]['createdBy_user_id"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['createdBy']['user']['displayName']"
+										},
+										"sink": {
+											"name": "value'][0]['createdBy_user_displayName"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['createdDateTime']"
+										},
+										"sink": {
+											"name": "value'][0]['createdDateTime"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['eTag']"
+										},
+										"sink": {
+											"name": "eTag"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['id']"
+										},
+										"sink": {
+											"name": "value'][0]['id"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['lastModifiedBy']['user']['email']"
+										},
+										"sink": {
+											"name": "value'][0]['lastModifiedBy_user_email"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['lastModifiedBy']['user']['id']"
+										},
+										"sink": {
+											"name": "value'][0]['lastModifiedBy_user_id"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['lastModifiedBy']['user']['displayName']"
+										},
+										"sink": {
+											"name": "value'][0]['lastModifiedBy_user_displayName"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['lastModifiedDateTime']"
+										},
+										"sink": {
+											"name": "value'][0]['lastModifiedDateTime"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['name']"
+										},
+										"sink": {
+											"name": "value'][0]['name"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['driveType']"
+										},
+										"sink": {
+											"name": "driveType"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['driveId']"
+										},
+										"sink": {
+											"name": "driveId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['id']"
+										},
+										"sink": {
+											"name": "value'][0]['parentReference_id"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['name']"
+										},
+										"sink": {
+											"name": "value'][0]['parentReference_name"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['path']"
+										},
+										"sink": {
+											"name": "path"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['parentReference']['siteId']"
+										},
+										"sink": {
+											"name": "siteId"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['webUrl']"
+										},
+										"sink": {
+											"name": "webUrl"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['cTag']"
+										},
+										"sink": {
+											"name": "cTag"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['file']['hashes']['quickXorHash']"
+										},
+										"sink": {
+											"name": "quickXorHash"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['file']['mimeType']"
+										},
+										"sink": {
+											"name": "mimeType"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['fileSystemInfo']['createdDateTime']"
+										},
+										"sink": {
+											"name": "value'][0]['fileSystemInfo_createdDateTime"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['fileSystemInfo']['lastModifiedDateTime']"
+										},
+										"sink": {
+											"name": "value'][0]['fileSystemInfo_lastModifiedDateTime"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['shared']['scope']"
+										},
+										"sink": {
+											"name": "scope"
+										}
+									},
+									{
+										"source": {
+											"path": "$['value'][0]['size']"
+										},
+										"sink": {
+											"name": "size"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Rest_GraphAPI_My365env",
+								"type": "DatasetReference",
+								"parameters": {
+									"relativeURL": {
+										"value": "@concat('drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_Sink",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": "sink_graph.csv"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"YourDynamicURL": {
+						"type": "string",
+						"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+					},
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+					},
+					"ClientID": {
+						"type": "string",
+						"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+					},
+					"ClientKeyAkvUrl": {
+						"type": "string",
+						"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+					},
+					"DriverID": {
+						"type": "string",
+						"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+					},
+					"FolderPath": {
+						"type": "string",
+						"defaultValue": "/root:/MyFiles"
+					}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Graph API')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/27dabd3fb095403dbf524816451d4185?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "GraphAPI_call",
+						"type": "WebActivity",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get APP Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"url": "https://graph.microsoft.com/v1.0/users?$select=displayName,givenName,surname,mail,userPrincipalName,jobTitle,department"
+						}
+					},
+					{
+						"name": "Copy Graph M365 User data with pagination",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"paginationRules": {
+									"AbsoluteUrl": "$['@odata.nextlink']"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "Rest_GraphAPI_My365env",
+								"type": "DatasetReference",
+								"parameters": {
+									"relativeURL": "data"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLS_JSON",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		}
+	]
+}

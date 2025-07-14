@@ -1,0 +1,1221 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		},
+		"AzureSqlMI_mymi_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlMI_mymi'"
+		},
+		"Blob_RosinaExternalStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Blob_RosinaExternalStorage'"
+		},
+		"OnPremSQL_ManagedVNetConnector_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'OnPremSQL_ManagedVNetConnector'"
+		},
+		"RosinaHDIcluster_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'RosinaHDIcluster'"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "mymi.f3c14a720ce8.database.windows.net"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "AdventureWorksLT2016"
+		},
+		"AzureSqlMI_mymi_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "SQLadmin"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "rosinavm-test.rosina.com"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Data"
+		},
+		"OnPremSQL_ManagedVNetConnector_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		},
+		"RosinaADLS_gen2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.dfs.core.windows.net/"
+		},
+		"RosinaHDIcluster_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureuser"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlMI_mymi')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "zongmeizhang@microsoft.com\n/subscriptions/57b69ca2-28c0-44e4-a3a9-b8f162590321/resourceGroups/RG-zongmei/providers/Microsoft.Sql/managedInstances/mymi",
+				"annotations": [],
+				"type": "AzureSqlMI",
+				"typeProperties": {
+					"server": "[parameters('AzureSqlMI_mymi_properties_typeProperties_server')]",
+					"database": "[parameters('AzureSqlMI_mymi_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('AzureSqlMI_mymi_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('AzureSqlMI_mymi_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "ManagedVNetIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Blob_RosinaExternalStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "if failed, check storage side -> configuration -> Allow storage account key access",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('Blob_RosinaExternalStorage_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "ManagedVNetIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremSQL_ManagedVNetConnector')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "in Linux RosinaNATVM (loadbalancer backend VM), need to run console:\nwget https://raw.githubusercontent.com/sajitsasi/az-ip-fwd/main/ip_fwd.sh\nchmod +x ip_fwd.sh\nsudo ./ip_fwd.sh -i eth0 -f 1433 -a rosinavm-test.rosina.com -b 1433\n(or sudo ./ip_fwd.sh -i eth0 -f 1433 -a 10.1.1.7 -b 1433)",
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_server')]",
+					"database": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('OnPremSQL_ManagedVNetConnector_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('OnPremSQL_ManagedVNetConnector_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "ManagedVNetIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RosinaADLS_gen2')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('RosinaADLS_gen2_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "ManagedVNetIR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RosinaHDIcluster')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HDInsight",
+				"typeProperties": {
+					"clusterUri": "https://RosinaHDIcluster.azurehdinsight.net",
+					"userName": "[parameters('RosinaHDIcluster_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('RosinaHDIcluster_password')]"
+					},
+					"isEspEnabled": false,
+					"linkedServiceName": {
+						"referenceName": "ADLS_HDInsightclusterStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy OneDrive File')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Http source",
+				"activities": [
+					{
+						"name": "Get Download URL",
+						"description": "URL:\nhttps://graph.microsoft.com/v1.0/users/0e197347-b631-4475-81d8-ed52956c2af7/drive/root:/Apps/Book.xlsx\n\nGet UserID from M365 admin center:\nhttps://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantOverview.ReactView?Microsoft_AAD_IAM_legacyAADRedirect=true\n\nShow more -> Identity -> Users -> The user -> ObjectID",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://graph.microsoft.com/v1.0/users/0e197347-b631-4475-81d8-ed52956c2af7/drive/root:/Apps/Book.xlsx",
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+								"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RosinaSPO-ServicePrincipal-Key"
+								}
+							}
+						}
+					},
+					{
+						"name": "Copy Binary Excel to ADLS",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Get Download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@{concat('Authorization: Bearer ',activity('Get Bearer Token').output.access_token)}",
+										"type": "Expression"
+									}
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "OracleSink",
+								"writeBatchSize": 10000
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "HttpBinaryDataset",
+								"type": "DatasetReference",
+								"parameters": {
+									"downloadUrl": {
+										"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OracleTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Copy Excel Sheet to Oracle",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get Download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@{concat('Authorization: Bearer ',activity('Get Bearer Token').output.access_token)}",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "OracleSink",
+								"writeBatchSize": 10000
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OnDriveExcel",
+								"type": "DatasetReference",
+								"parameters": {
+									"DownloadURL": {
+										"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OracleTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Get Bearer Token",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get App Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7ef@d1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get App Client Key",
+						"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HDI')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Hive1",
+						"type": "HDInsightHive",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"scriptPath": "codes/hello_world_with_param.hql",
+							"getDebugInfo": "None",
+							"scriptLinkedService": {
+								"referenceName": "ADLS_HDInsightclusterStorage",
+								"type": "LinkedServiceReference"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "RosinaHDIcluster",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:47Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaHDIcluster')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OneDriveTest')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Download URL",
+						"description": "URL:\nhttps://graph.microsoft.com/v1.0/users/fbf00b10-47c7-44c2-b308-18170754cea2/drive/root:/Apps/OneDriveTest.xlsx\n\nhttps://graph.microsoft.com/v1.0/users/0e197347-b631-4475-81d8-ed52956c2af7/drive/root:/Apps/Book.xlsx\n\nGet UserID from M365 admin center:\nhttps://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantOverview.ReactView?Microsoft_AAD_IAM_legacyAADRedirect=true\n\nShow more -> Identity -> Users -> The user -> ObjectID",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://graph.microsoft.com/v1.0/users/fbf00b10-47c7-44c2-b308-18170754cea2/drive/root:/Apps/OneDriveTest.xlsx",
+							"authentication": {
+								"type": "ServicePrincipal",
+								"userTenant": "b933704f-3262-4645-b4e0-2b57b2de529c",
+								"username": "66572f9a-ba44-48aa-80ff-2c1731be795d",
+								"resource": "https://graph.microsoft.com/",
+								"password": {
+									"type": "AzureKeyVaultSecret",
+									"store": {
+										"referenceName": "RosinaAKV",
+										"type": "LinkedServiceReference"
+									},
+									"secretName": "RobertSPOClientKey"
+								}
+							}
+						}
+					},
+					{
+						"name": "GetBearerToken",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get App Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"url": "https://login.microsoftonline.com/b933704f-3262-4645-b4e0-2b57b2de529c/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('client_id=66572f9a-ba44-48aa-80ff-2c1731be795d&client_secret=',activity('Get App Client Key').output.value,'&scope=https%3A%2F%2Fgraph.microsoft.com%2F%2F.default&grant_type=client_credentials')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy Binary Excel to ADLS",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "GetBearerToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@{concat('Authorization: Bearer ',activity('GetBearerToken').output.access_token)}",
+										"type": "Expression"
+									}
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "OracleSink",
+								"writeBatchSize": 10000
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "HttpBinaryDataset",
+								"type": "DatasetReference",
+								"parameters": {
+									"downloadUrl": {
+										"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OracleTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Get App Client Key",
+						"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RobertSPOClientKey/dcb2b40d0ce4401f8636aad03187bdfc?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Copy Excel Sheet to Oracle",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get Download URL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "GetBearerToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"value": "@{concat('Authorization: Bearer ',activity('GetBearerToken').output.access_token)}",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "OracleSink",
+								"writeBatchSize": 10000
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OnDriveExcel",
+								"type": "DatasetReference",
+								"parameters": {
+									"DownloadURL": {
+										"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "OracleTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:49Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Binary')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "output/CopyWithDeletion",
+						"fileSystem": "data"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_JSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "sink.json",
+						"fileSystem": "data"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "output",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Parquet_V2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": ",\n            \"useParquetV2\": true",
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "input/ParquetFiles",
+						"fileSystem": "data"
+					},
+					"compressionCodec": "snappy",
+					"useParquetV2": true
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "sink1.csv"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "output",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BlobStorage_Parquet_V2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage_aue",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "ParquetV2_FutureTime_Varchar50.parquet"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "output",
+						"container": "data"
+					},
+					"compressionCodec": "snappy",
+					"useParquetV2": true
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DatabricksDeltaLakeDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricksDeltaLake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLakeDataset",
+				"typeProperties": {
+					"database": "default",
+					"table": "parquet_v_2_future_time_varchar_50"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/On_PremSQL_ManagedVNetIR')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "OnPremSQL_ManagedVNetConnector",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MyTable_CsvSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/OnPremSQL_ManagedVNetConnector')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RosinaADLS_gen2_CSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RosinaADLS_gen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "output/PartitionOutput",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "bookID",
+						"type": "String"
+					},
+					{
+						"name": "title",
+						"type": "String"
+					},
+					{
+						"name": "authors",
+						"type": "String"
+					},
+					{
+						"name": "average_rating",
+						"type": "String"
+					},
+					{
+						"name": "isbn",
+						"type": "String"
+					},
+					{
+						"name": "isbn13",
+						"type": "String"
+					},
+					{
+						"name": "language_code",
+						"type": "String"
+					},
+					{
+						"name": "  num_pages",
+						"type": "String"
+					},
+					{
+						"name": "ratings_count",
+						"type": "String"
+					},
+					{
+						"name": "text_reviews_count",
+						"type": "String"
+					},
+					{
+						"name": "publication_date",
+						"type": "String"
+					},
+					{
+						"name": "publisher",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Azure_SFTP_dataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "Blob_RosinaExternalStorage",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSFTP_csv",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     container: 'data',",
+						"     fileName: 'DATA_01.CSV',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true) ~> source1",
+						"source1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['AzureSFTP_sink.csv'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Blob_RosinaExternalStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parse_GraphApiResponse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "REST_Graph_My365Tenant",
+								"type": "LinkedServiceReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "RosinaADLS_gen2",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          body as ({@odata.context} as string, value as ({@microsoft.graph.downloadUrl} as string, cTag as string, createdBy as (user as (displayName as string, email as string, id as string)), createdDateTime as timestamp, eTag as string, file as (hashes as (quickXorHash as string), mimeType as string), fileSystemInfo as (createdDateTime as timestamp, lastModifiedDateTime as timestamp), id as string, lastModifiedBy as (user as (displayName as string, email as string, id as string)), lastModifiedDateTime as timestamp, name as string, parentReference as (driveId as string, driveType as string, id as string, name as string, path as string, siteId as string), shared as (scope as string), size as integer, webUrl as string)[]),",
+						"          headers as [string,string]",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'rest',",
+						"     timeout: 30,",
+						"     requestInterval: 0,",
+						"     entity: 'drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/MyFiles:/children',",
+						"     httpMethod: 'GET',",
+						"     paginationRules: ['supportRFC5988' -> 'true'],",
+						"     responseFormat: ['type' -> 'json', 'documentForm' -> 'documentPerLine']) ~> source1",
+						"source1 foldDown(unroll(body.value, body.value),",
+						"     mapColumn(",
+						"          createdBy = body.value.createdBy,",
+						"          createdDateTime = body.value.createdDateTime,",
+						"          file = body.value.file,",
+						"          id = body.value.id,",
+						"          lastModifiedBy = body.value.lastModifiedBy,",
+						"          lastModifiedDateTime = body.value.lastModifiedDateTime,",
+						"          name = body.value.name,",
+						"          parentReference = body.value.parentReference,",
+						"          size = body.value.size,",
+						"          webUrl = body.value.webUrl",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"flatten1 select(mapColumn(",
+						"          id,",
+						"          name,",
+						"          path = parentReference.path,",
+						"          size,",
+						"          createdDateTime,",
+						"          lastModifiedDateTime,",
+						"          parentReference_driverId = parentReference.driveId,",
+						"          parentReference_siteId = parentReference.siteId,",
+						"          webUrl",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'data',",
+						"     folderPath: 'output',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     partitionFileNames:['sink_Dataflow_GraphAPI_SPOFileMetadata.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RosinaADLS_gen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TestSQL_Upsert')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSQL_TestUpsert_SourceTable",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSQL_TestUpsert_SinkTable",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          COL_KEY as integer,",
+						"          COL_VALUE as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'NONE',",
+						"     format: 'table') ~> source1",
+						"source1 alterRow(upsertIf(isNull(COL_KEY)==false())) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['COL_KEY'],",
+						"     skipKeyWrites:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

@@ -1,0 +1,1471 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "RosinaLabADF"
+		},
+		"GitHub1_credential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'credential' of 'GitHub1'"
+		},
+		"default_properties_SnowflakeLSJSON_value": {
+			"type": "object",
+			"defaultValue": {
+				"name": "Snowflake_EN56775",
+				"type": "Microsoft.DataFactory/factories/linkedservices",
+				"properties": {
+					"description": "https://qaggkyi-en56775.snowflakecomputing.com\nUsername ROSINAWANG\n",
+					"annotations": [],
+					"type": "SnowflakeV2",
+					"typeProperties": {
+						"authenticationType": "Basic",
+						"accountIdentifier": "EN56775",
+						"user": "ROSINAWANG",
+						"database": "ROSINASNOWFLAKE",
+						"warehouse": "ROSINA_WAREHOUSE",
+						"host": "qaggkyi-en56775.snowflakecomputing.com",
+						"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUxM0E3Q0M4LTNBRkEtNDk2MS1BRjA5LTM5RTcxRkVGMTAzMV9jMjM0MTMwYy04MDVmLTRkZGEtYWY2NC0xMDk3YmJmNTY5YjgiDQp9"
+					}
+				}
+			}
+		},
+		"AzFileShare_MI_Auth_properties_typeProperties_serviceEndpoint": {
+			"type": "string",
+			"defaultValue": "https://rosinaauestorage.file.core.windows.net/"
+		},
+		"AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0805-023922-npdt132b"
+		},
+		"GitHub1_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "1121050482@QQ.COM"
+		},
+		"Hive1_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "///"
+		},
+		"Http_CRM_WebAPI_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/sharepointdocuments"
+		},
+		"Http_CostDetails_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().URL}"
+		},
+		"Http_GraphAPI_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{concat('https://graph.microsoft.com/v1.0/drives/',linkedService().driverID)}"
+		},
+		"OData1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/"
+		},
+		"OnedriveSource_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().downloadUrl}"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/globalparameters",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"SnowflakeLSJSON": {
+					"type": "object",
+					"value": "[parameters('default_properties_SnowflakeLSJSON_value')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADFWorkerPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 10
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Call Fabric Notebook API')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "POST Run Fabric Notebook",
+						"description": "https://learn.microsoft.com/en-us/fabric/data-engineering/notebook-public-api",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Fabric Account Token from AKV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get Fabric Account Token from AKV').output.value)",
+									"type": "Expression"
+								}
+							},
+							"turnOffAsync": true,
+							"url": "https://api.fabric.microsoft.com/v1/workspaces/ff84522d-4fb4-4565-8028-1ba8802e22eb/items/11b73e80-fda5-4902-96bf-40da6c147c70/jobs/instances?jobType=RunNotebook",
+							"body": {
+								"executionData": {
+									"configuration": {
+										"useStarterPool": true
+									}
+								}
+							}
+						}
+					},
+					{
+						"name": "Get Fabric Account Token from AKV",
+						"description": "This token will exprire every 1 hour, run Fabric notebook to get it again. Or you can save it to any DB and query it out to use.\n\n### Notebook Python Code as below shared by lei.sun\naccess_token = mssparkutils.credentials.getToken(\"pbi\") \nprint(\"access token\" + access_token) \n\n# (NOT suggested to share to cx) \n# By-design token will not show-up，can show with below. Then, in notepad++, replace all '','' as empty string ''\na= list(access_token)\nprint(a)\n",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/FabircAccountAccessToken/94f21fff74424e4ab47c60d3207de0b1?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Until Notebook Completed or Failed",
+						"type": "Until",
+						"dependsOn": [
+							{
+								"activity": "Set NotebookResult",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@or(equals(variables('NotebookResult'),'Completed'),equals(variables('NotebookResult'),'Failed'))",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Wait for Notebook to start run",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 60
+									}
+								},
+								{
+									"name": "Get Notebook Execution Result",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "Wait for Notebook to start run",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "GET",
+										"headers": {
+											"Authorization": {
+												"value": "@concat('Bearer ',activity('Get Fabric Account Token from AKV').output.value)",
+												"type": "Expression"
+											}
+										},
+										"url": {
+											"value": "@activity('POST Run Fabric Notebook').output.ADFWebActivityResponseHeaders.Location",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Update NotebookResult",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Get Notebook Execution Result",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "NotebookResult",
+										"value": {
+											"value": "@activity('Get Notebook Execution Result').output.status",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"timeout": "0.12:00:00"
+						}
+					},
+					{
+						"name": "Set NotebookResult",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "POST Run Fabric Notebook",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "NotebookResult",
+							"value": "Started"
+						}
+					},
+					{
+						"name": "If Notebook Run Completed",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Until Notebook Completed or Failed",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(variables('NotebookResult'),'Completed')",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Fail1",
+									"type": "Fail",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "Execute Fabric Notebook result is Failed",
+										"errorCode": "Failed Notebook Run"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"NotebookResult": {
+						"type": "String"
+					},
+					"NotebookLocationURL": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dynamics Dataverse API - BulkDeleteAction')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "reference:\nhttps://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/bulkdelete?view=dataverse-latest",
+				"activities": [
+					{
+						"name": "Bulk Delete Action",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Dynamics API Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/json",
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get Dynamics API Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"disableCertValidation": true,
+							"turnOffAsync": false,
+							"url": {
+								"value": "@concat(pipeline().parameters.YourDynamicURL,'/api/data/v9.2/BulkDelete')",
+								"type": "Expression"
+							},
+							"body": {
+								"value": "@json(concat(\n  '{',\n    '\"JobName\":\"DeleteAsyncOperations-OnOrBefore', pipeline().parameters.OnOrBeforeDate, '\",',\n    '\"QuerySet\":[{',\n      '\"EntityName\":\"asyncoperation\",',\n      '\"Criteria\":{',\n        '\"@odata.type\":\"Microsoft.Dynamics.CRM.FilterExpression\",',\n        '\"FilterOperator\":\"And\",',\n        '\"Conditions\":[{',\n          '\"AttributeName\":\"modifiedon\",',\n          '\"Operator\":\"OnOrBefore\",',\n          '\"Values\":[{',\n            '\"Value\":\"', pipeline().parameters.OnOrBeforeDate, 'T00:00:00Z\",',\n            '\"Type\":\"System.DateTime\"',\n          '}]',\n        '}]',\n      '}',\n    '}],',\n    '\"StartDateTime\":\"', pipeline().parameters.StartDateTime, '\",',\n    '\"RecurrencePattern\":\"FREQ=DAILY;INTERVAL=365\",',\n    '\"SendEmailNotification\":false,',\n    '\"ToRecipients\":[],',\n    '\"CCRecipients\":[]',\n  '}'\n))\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Dynamics API Token",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Application Client Key from AKV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": {
+								"value": "@concat('https://login.microsoftonline.com/',pipeline().parameters.TenantID,'/oauth2/v2.0/token')",
+								"type": "Expression"
+							},
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=',pipeline().parameters.ClientID,'&client_secret=',activity('Get Application Client Key from AKV').output.value,'&scope=',pipeline().parameters.YourDynamicURL,'/.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Application Client Key from AKV",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": {
+								"value": "@concat(pipeline().parameters.ClientKeyAkvUrl,'?api-version=7.0')",
+								"type": "Expression"
+							},
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"OnOrBeforeDate": {
+						"type": "string",
+						"defaultValue": "2025-05-08"
+					},
+					"StartDateTime": {
+						"type": "string",
+						"defaultValue": "2025-06-04T03:12:00Z"
+					},
+					"YourDynamicURL": {
+						"type": "string",
+						"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+					},
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+					},
+					"ClientID": {
+						"type": "string",
+						"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+					},
+					"ClientKeyAkvUrl": {
+						"type": "string",
+						"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+					}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Get Bearer Token Azure')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/27dabd3fb095403dbf524816451d4185?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Get Bearer Token Azure_My365Tenant')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=f43557ff-9a53-430c-8054-700fde9500d8&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"description": "RosinaSPO-ServicePrincipal-Key",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/0635da62812e4f5abaa925fe9d5e56f3?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Get Bearer token 365')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Bearer Token Personal Tenant",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/token",
+							"body": "grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=<???>&resource=\nhttps://management.azure.com"
+						}
+					},
+					{
+						"name": "Get Bearer Token",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get App Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7ef@d1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get App Client Key",
+						"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Logic App Web and Webhook')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "WebHook1",
+						"type": "WebHook",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"name": "Rosina"
+							},
+							"timeout": "00:10:00",
+							"reportStatusOnCallBack": true,
+							"disableCertValidation": true
+						}
+					},
+					{
+						"name": "Get APP Bearer Token",
+						"description": "RosinaAPP",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Client Key",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Wait1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"disableCertValidation": true,
+							"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+							"body": {
+								"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Client Key",
+						"description": "<akv-url>?api-version=7.0",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/8ccfa8ba5ee14a49be086527d1807707?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "Trigger Logic App",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp-simpleTest/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>"
+						}
+					},
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "Trigger Logic App",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 15
+						}
+					},
+					{
+						"name": "If Result is Failed",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get Logic App Result",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@not(equals(activity('Get Logic App Result').output.properties.status,'Succeeded'))",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Fail1",
+									"type": "Fail",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"message": "Logic App Not Succeeded",
+										"errorCode": "na"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Get Logic App Result",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get APP Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"url": {
+								"value": "@concat('https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Web/sites/RosinaLogicApp/hostruntime/runtime/webhooks/workflow/api/management/workflows/rosinaLogicApp-simpleTest/runs/',activity('Trigger Logic App').output.Response,'?api-version=2024-04-01')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Trigger Long Logic App run",
+						"description": "HTTP request timeout: 10min\nLogic App side need to add an response task to enable Asynchronous response\n",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "API Tests"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:47Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Test Elapsed time metric')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 605
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {
+						"duration": "0.00:10:00"
+					}
+				},
+				"folder": {
+					"name": "Monitor_Cancel_and_Re-trigger"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:45Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/monitor_pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Check pipeline status",
+						"description": "获取当前pipeline_one管道的执行情况",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Wait for pipeline_one SLA",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+									"type": "Expression"
+								}
+							},
+							"url": {
+								"value": "@concat('https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelineruns/',pipeline().parameters.pipelineRunID,'?api-version=2018-06-01')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Wait for pipeline_one SLA",
+						"description": "等待一段时间，即等待您期望的pipeline_one管道SLA时长",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 10
+						}
+					},
+					{
+						"name": "If pipeline succeeded",
+						"description": "当pipeline_one返回的状态不是“Succeeded“时，做一系列操作",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Set pipeline_status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@not(contains(variables('Pipeline_Status'),'Succeeded'))",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Cancel current pipeline_one",
+									"description": "用REST请求根据run ID参数cancel掉当前pipeline_one的run",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "POST",
+										"headers": {
+											"Authorization": {
+												"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+												"type": "Expression"
+											}
+										},
+										"url": {
+											"value": "@concat('https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelineruns/',pipeline().parameters.pipelineRunID,'/cancel?api-version=2018-06-01')",
+											"type": "Expression"
+										},
+										"body": "{\n'':''\n}"
+									}
+								},
+								{
+									"name": "Wait for TTL",
+									"description": "等待一定时间（例如等待IR TTL过去，以确保使用新的IR node）",
+									"type": "Wait",
+									"dependsOn": [
+										{
+											"activity": "Cancel current pipeline_one",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 60
+									}
+								},
+								{
+									"name": "Trigger new pipeline_one",
+									"description": "使用一个REST请求启动新的pipeline_one管道",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "Wait for TTL",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "POST",
+										"headers": {
+											"Authorization": {
+												"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+												"type": "Expression"
+											}
+										},
+										"url": "https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelines/pipeline_one/createRun?api-version=2018-06-01",
+										"body": "{\n'':''\n}"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Set pipeline_status",
+						"description": "记录pipeline_one管道的执行情况",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Check pipeline status",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Pipeline_Status",
+							"value": {
+								"value": "@activity('Check pipeline status').output.status",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Bearer Token",
+						"description": "https://learn.microsoft.com/en-us/community/content/azure-rest-api-how-to-create-a-bearer-token#get-the-azure-active-directory-token",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"url": "https://login.microsoftonline.com/<tenantID>/oauth2/token",
+							"body": "grant_type=client_credentials&client_id=<>&client_secret=<>&resource=\nhttps://management.azure.com"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pipelineRunID": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"Pipeline_Status": {
+						"type": "String",
+						"defaultValue": "Failed"
+					}
+				},
+				"folder": {
+					"name": "Monitor_Cancel_and_Re-trigger"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:47Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_one1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "pipeline_one管道的第一个活动开始后（或并行也可以）使用一个Web REST request启动一个monitor_pipeline，并将当前管道的pipeline run ID传递为monitor_pipeline的管道参数。",
+				"activities": [
+					{
+						"name": "pipeline_one first activity",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					},
+					{
+						"name": "pipeline_one other activities",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "pipeline_one first activity",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 605
+						}
+					},
+					{
+						"name": "Trigger monitor pipeline",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "pipeline_one first activity",
+								"dependencyConditions": [
+									"Completed"
+								]
+							},
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": "https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelines/monitor_pipeline/createRun?api-version=2018-06-01",
+							"body": {
+								"value": "@concat('{\"pipelineRunID\":\"',pipeline().RunId,'\"}')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Bearer Token",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"url": "https://login.microsoftonline.com/<tenantID>/oauth2/token",
+							"body": "grant_type=client_credentials&client_id=<>&client_secret=<>&resource=\nhttps://management.azure.com"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {
+						"duration": "0.00:10:00"
+					}
+				},
+				"folder": {
+					"name": "Monitor_Cancel_and_Re-trigger"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-07-14T03:27:46Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzFileShare_MI_Auth')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "&feature.enableAzureFileMIAuth=true",
+				"annotations": [],
+				"type": "AzureFileStorage",
+				"typeProperties": {
+					"serviceEndpoint": "[parameters('AzFileShare_MI_Auth_properties_typeProperties_serviceEndpoint')]",
+					"fileShare": "rosinafs"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Databricks/workspaces/RosinaADB",
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-1291252598671838.18.azuredatabricks.net",
+					"authentication": "MSI",
+					"workspaceResourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Databricks/workspaces/RosinaADB",
+					"existingClusterId": "[parameters('AzureDatabricks_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GitHub1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "GitHub",
+				"typeProperties": {
+					"username": "[parameters('GitHub1_properties_typeProperties_username')]",
+					"credential": {
+						"type": "SecureString",
+						"value": "[parameters('GitHub1_credential')]"
+					},
+					"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUxM0E3Q0M4LTNBRkEtNDk2MS1BRjA5LTM5RTcxRkVGMTAzMV9kNzIyZDk2Yy0zM2I3LTRlODQtOTllNS05MTViNjNkZDJlOGEiDQp9"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Hive1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Hive",
+				"typeProperties": {
+					"host": "[parameters('Hive1_properties_typeProperties_host')]",
+					"port": 443,
+					"serverType": "HiveServer1",
+					"authenticationType": "Anonymous",
+					"enableSsl": false,
+					"password": false,
+					"serviceDiscoveryMode": false,
+					"useNativeQuery": false
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Http_CRM_WebAPI')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "var ODataRequest = new XMLHttpRequest();\nODataRequest.open(\"POST\", \"https://org913fddd1.crm5.dynamics.com/api/data/v9.2/systemusers\", false);\nODataRequest.setRequestHeader(\"Accept\", \"application/json\");\nODataRequest.setRequestHeader(\"Content-Type\", \"application/json; charset=utf-8\");\nODataRequest.setRequestHeader(\"access_token\", \"<>\");\nODataRequest.send(data);",
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('Http_CRM_WebAPI_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Http_CostDetails')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"URL": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('Http_CostDetails_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Http_GraphAPI')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "URL IN LS:\nhttps://graph.microsoft.com/v1.0/drives/{drive-id}",
+				"parameters": {
+					"driverID": {
+						"type": "string",
+						"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+					}
+				},
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('Http_GraphAPI_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OData1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "OData",
+				"typeProperties": {
+					"url": "[parameters('OData1_properties_typeProperties_url')]",
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnedriveSource')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"downloadUrl": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('OnedriveSource_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
