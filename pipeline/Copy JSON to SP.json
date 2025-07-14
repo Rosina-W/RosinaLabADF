@@ -1,0 +1,553 @@
+{
+	"name": "Copy JSON to SP",
+	"properties": {
+		"description": "for AVA 2409180030000021",
+		"activities": [
+			{
+				"name": "JSON to SP",
+				"description": "",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"additionalColumns": [
+							{
+								"name": "fldMarketDataImportFileName",
+								"value": "$$FILENAME"
+							},
+							{
+								"name": "fldRecordUpdatedUserName",
+								"value": {
+									"value": "adfProcess",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "fldMarketDataImportSource",
+								"value": {
+									"value": "BBG",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "fldNotes",
+								"value": {
+									"value": "ADFsink_Table",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": true
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['DL_SNAPSHOT_START_TIME']"
+								},
+								"sink": {
+									"name": "RetrievedDateTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['DL_SNAPSHOT_TZ']"
+								},
+								"sink": {
+									"name": "RetrievedDateTimeTZ",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['IDENTIFIER']"
+								},
+								"sink": {
+									"name": "BBGItem",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['RC']"
+								},
+								"sink": {
+									"name": "BBGErrorCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['PX_LAST']"
+								},
+								"sink": {
+									"name": "BBGValue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldRecordUpdatedUserName']"
+								},
+								"sink": {
+									"name": "fldRecordUpdatedUserName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldMarketDataImportSource']"
+								},
+								"sink": {
+									"name": "fldMarketDataImportSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['LAST_UPDATE_DT']"
+								},
+								"sink": {
+									"name": "BBGLastUpdateDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldMarketDataImportFileName']"
+								},
+								"sink": {
+									"name": "fldMarketDataImportFileName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldNotes']"
+								},
+								"sink": {
+									"name": "fldNotes",
+									"type": "String"
+								}
+							}
+						],
+						"mapComplexValuesToString": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_JSON",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "DataTable",
+							"SchemaName": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "CSV to SP",
+				"description": "",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "JSON to CSV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"sqlWriterStoredProcedureName": "[dbo].[uspMarketDataInsert]",
+						"sqlWriterTableType": "typeDataTable",
+						"storedProcedureTableTypeParameterName": "MarketDataImport",
+						"disableMetricsCollection": true
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "fldMarketDataImportSource",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "fldMarketDataImportSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "fldMarketDataImportFileName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "fldMarketDataImportFileName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BBGErrorCode",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BBGErrorCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BBGLastUpdateDate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BBGLastUpdateDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "fldRecordUpdatedUserName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "fldRecordUpdatedUserName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RetrievedDateTime",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RetrievedDateTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RetrievedDateTimeTZ",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RetrievedDateTimeTZ",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "fldNotes",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "fldNotes",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BBGValue",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BBGValue",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BBGItem",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BBGItem",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_Sink",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "JsonOutput",
+							"SchemaName": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "JSON to CSV",
+				"description": "",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"additionalColumns": [
+							{
+								"name": "fldMarketDataImportFileName",
+								"value": "$$FILENAME"
+							},
+							{
+								"name": "fldRecordUpdatedUserName",
+								"value": {
+									"value": "adfProcess",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "fldMarketDataImportSource",
+								"value": {
+									"value": "BBG",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "fldNotes",
+								"value": {
+									"value": "Loaded by ADF",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['DL_SNAPSHOT_START_TIME']"
+								},
+								"sink": {
+									"name": "RetrievedDateTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['DL_SNAPSHOT_TZ']"
+								},
+								"sink": {
+									"name": "RetrievedDateTimeTZ",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['IDENTIFIER']"
+								},
+								"sink": {
+									"name": "BBGItem",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['RC']"
+								},
+								"sink": {
+									"name": "BBGErrorCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['PX_LAST']"
+								},
+								"sink": {
+									"name": "BBGValue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['LAST_UPDATE_DT']"
+								},
+								"sink": {
+									"name": "BBGLastUpdateDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldMarketDataImportFileName']"
+								},
+								"sink": {
+									"name": "fldMarketDataImportFileName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldRecordUpdatedUserName']"
+								},
+								"sink": {
+									"name": "fldRecordUpdatedUserName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldMarketDataImportSource']"
+								},
+								"sink": {
+									"name": "fldMarketDataImportSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['fldNotes']"
+								},
+								"sink": {
+									"name": "fldNotes",
+									"type": "String"
+								}
+							}
+						],
+						"mapComplexValuesToString": false
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_JSON",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Sink",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

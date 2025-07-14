@@ -1,0 +1,10 @@
+{
+	"name": "AzureSqlMI_mymi",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/57b69ca2-28c0-44e4-a3a9-b8f162590321/resourceGroups/RG-zongmei/providers/Microsoft.Sql/managedInstances/mymi",
+		"groupId": "managedInstance",
+		"fqdns": [
+			"mymi.f3c14a720ce8.database.windows.net"
+		]
+	}
+}

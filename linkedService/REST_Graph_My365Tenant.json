@@ -1,0 +1,25 @@
+{
+	"name": "REST_Graph_My365Tenant",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://graph.microsoft.com/v1.0/",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "f43557ff-9a53-430c-8054-700fde9500d8",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "RosinaSPO-ServicePrincipal-Key"
+			},
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"tenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+			"aadResourceId": "https://graph.microsoft.com"
+		}
+	}
+}

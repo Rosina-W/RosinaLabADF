@@ -1,0 +1,13 @@
+{
+	"name": "AzFileShare_MI_Auth",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "&feature.enableAzureFileMIAuth=true",
+		"annotations": [],
+		"type": "AzureFileStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://rosinaauestorage.file.core.windows.net/",
+			"fileShare": "rosinafs"
+		}
+	}
+}

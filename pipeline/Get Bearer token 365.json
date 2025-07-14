@@ -1,0 +1,88 @@
+{
+	"name": "Get Bearer token 365",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Bearer Token Personal Tenant",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/token",
+					"body": "grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=<???>&resource=\nhttps://management.azure.com"
+				}
+			},
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get App Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7ef@d1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get App Client Key",
+				"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,19 @@
+{
+	"name": "Binary_SFTP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sftp_Rosina22env",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"fileName": "Test.csv",
+				"folderPath": "/C:/Test"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

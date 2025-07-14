@@ -1,0 +1,14 @@
+{
+	"name": "Http_CRM_WebAPI",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "var ODataRequest = new XMLHttpRequest();\nODataRequest.open(\"POST\", \"https://org913fddd1.crm5.dynamics.com/api/data/v9.2/systemusers\", false);\nODataRequest.setRequestHeader(\"Accept\", \"application/json\");\nODataRequest.setRequestHeader(\"Content-Type\", \"application/json; charset=utf-8\");\nODataRequest.setRequestHeader(\"access_token\", \"<>\");\nODataRequest.send(data);",
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/sharepointdocuments",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

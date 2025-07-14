@@ -1,0 +1,39 @@
+{
+	"name": "ADF APIs",
+	"properties": {
+		"description": "https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/get?view=rest-datafactory-2018-06-01&tabs=HTTP",
+		"activities": [
+			{
+				"name": "Get ADF Pipelines",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaLabRG/providers/Microsoft.DataFactory/factories/RosinaLabADF/pipelines/ADFWorkerPipeline?api-version=2018-06-01",
+					"authentication": {
+						"resource": "https://management.azure.com",
+						"credential": {
+							"referenceName": "credential_RosinaApp",
+							"type": "CredentialReference"
+						},
+						"userTenant": "16b3c013-d300-468d-ac64-7eda0820b6d3"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

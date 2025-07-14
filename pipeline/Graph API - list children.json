@@ -1,0 +1,419 @@
+{
+	"name": "Graph API - list children",
+	"properties": {
+		"activities": [
+			{
+				"name": "GraphAPI list children works",
+				"description": "GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root:/{path-relative-to-root}:/children\n\nhttps://graph.microsoft.com/v1.0/drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/Shared%20Documents/MyFiles:/children\n",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat('https://graph.microsoft.com/v1.0/drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": {
+							"value": "@pipeline().parameters.TenantID",
+							"type": "Expression"
+						},
+						"username": {
+							"value": "@pipeline().parameters.ClientID",
+							"type": "Expression"
+						},
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "Get APP Bearer Token",
+				"description": "RosinaAPP",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=f43557ff-9a53-430c-8054-700fde9500d8&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Client Key",
+				"description": "RosinaSPO-ServicePrincipal-Key",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['@odata.context']"
+								},
+								"sink": {
+									"name": "@@odata.context"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['@microsoft.graph.downloadUrl']"
+								},
+								"sink": {
+									"name": "@@microsoft.graph.downloadUrl"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['createdBy']['user']['email']"
+								},
+								"sink": {
+									"name": "value'][0]['createdBy_user_email"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['createdBy']['user']['id']"
+								},
+								"sink": {
+									"name": "value'][0]['createdBy_user_id"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['createdBy']['user']['displayName']"
+								},
+								"sink": {
+									"name": "value'][0]['createdBy_user_displayName"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['createdDateTime']"
+								},
+								"sink": {
+									"name": "value'][0]['createdDateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['eTag']"
+								},
+								"sink": {
+									"name": "eTag"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['id']"
+								},
+								"sink": {
+									"name": "value'][0]['id"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['lastModifiedBy']['user']['email']"
+								},
+								"sink": {
+									"name": "value'][0]['lastModifiedBy_user_email"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['lastModifiedBy']['user']['id']"
+								},
+								"sink": {
+									"name": "value'][0]['lastModifiedBy_user_id"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['lastModifiedBy']['user']['displayName']"
+								},
+								"sink": {
+									"name": "value'][0]['lastModifiedBy_user_displayName"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['lastModifiedDateTime']"
+								},
+								"sink": {
+									"name": "value'][0]['lastModifiedDateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['name']"
+								},
+								"sink": {
+									"name": "value'][0]['name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['driveType']"
+								},
+								"sink": {
+									"name": "driveType"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['driveId']"
+								},
+								"sink": {
+									"name": "driveId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['id']"
+								},
+								"sink": {
+									"name": "value'][0]['parentReference_id"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['name']"
+								},
+								"sink": {
+									"name": "value'][0]['parentReference_name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['path']"
+								},
+								"sink": {
+									"name": "path"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['parentReference']['siteId']"
+								},
+								"sink": {
+									"name": "siteId"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['webUrl']"
+								},
+								"sink": {
+									"name": "webUrl"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['cTag']"
+								},
+								"sink": {
+									"name": "cTag"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['file']['hashes']['quickXorHash']"
+								},
+								"sink": {
+									"name": "quickXorHash"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['file']['mimeType']"
+								},
+								"sink": {
+									"name": "mimeType"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['fileSystemInfo']['createdDateTime']"
+								},
+								"sink": {
+									"name": "value'][0]['fileSystemInfo_createdDateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['fileSystemInfo']['lastModifiedDateTime']"
+								},
+								"sink": {
+									"name": "value'][0]['fileSystemInfo_lastModifiedDateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['shared']['scope']"
+								},
+								"sink": {
+									"name": "scope"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['size']"
+								},
+								"sink": {
+									"name": "size"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Rest_GraphAPI_My365env",
+						"type": "DatasetReference",
+						"parameters": {
+							"relativeURL": {
+								"value": "@concat('drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Sink",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "sink_graph.csv"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"YourDynamicURL": {
+				"type": "string",
+				"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+			},
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+			},
+			"ClientKeyAkvUrl": {
+				"type": "string",
+				"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+			},
+			"DriverID": {
+				"type": "string",
+				"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+			},
+			"FolderPath": {
+				"type": "string",
+				"defaultValue": "/root:/MyFiles"
+			}
+		},
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

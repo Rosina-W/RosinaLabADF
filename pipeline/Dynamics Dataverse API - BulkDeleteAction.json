@@ -1,0 +1,139 @@
+{
+	"name": "Dynamics Dataverse API - BulkDeleteAction",
+	"properties": {
+		"description": "reference:\nhttps://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/bulkdelete?view=dataverse-latest",
+		"activities": [
+			{
+				"name": "Bulk Delete Action",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Dynamics API Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get Dynamics API Token').output.access_token)",
+							"type": "Expression"
+						}
+					},
+					"disableCertValidation": true,
+					"turnOffAsync": false,
+					"url": {
+						"value": "@concat(pipeline().parameters.YourDynamicURL,'/api/data/v9.2/BulkDelete')",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@json(concat(\n  '{',\n    '\"JobName\":\"DeleteAsyncOperations-OnOrBefore', pipeline().parameters.OnOrBeforeDate, '\",',\n    '\"QuerySet\":[{',\n      '\"EntityName\":\"asyncoperation\",',\n      '\"Criteria\":{',\n        '\"@odata.type\":\"Microsoft.Dynamics.CRM.FilterExpression\",',\n        '\"FilterOperator\":\"And\",',\n        '\"Conditions\":[{',\n          '\"AttributeName\":\"modifiedon\",',\n          '\"Operator\":\"OnOrBefore\",',\n          '\"Values\":[{',\n            '\"Value\":\"', pipeline().parameters.OnOrBeforeDate, 'T00:00:00Z\",',\n            '\"Type\":\"System.DateTime\"',\n          '}]',\n        '}]',\n      '}',\n    '}],',\n    '\"StartDateTime\":\"', pipeline().parameters.StartDateTime, '\",',\n    '\"RecurrencePattern\":\"FREQ=DAILY;INTERVAL=365\",',\n    '\"SendEmailNotification\":false,',\n    '\"ToRecipients\":[],',\n    '\"CCRecipients\":[]',\n  '}'\n))\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Dynamics API Token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Application Client Key from AKV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/',pipeline().parameters.TenantID,'/oauth2/v2.0/token')",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=',pipeline().parameters.ClientID,'&client_secret=',activity('Get Application Client Key from AKV').output.value,'&scope=',pipeline().parameters.YourDynamicURL,'/.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Application Client Key from AKV",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat(pipeline().parameters.ClientKeyAkvUrl,'?api-version=7.0')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"OnOrBeforeDate": {
+				"type": "string",
+				"defaultValue": "2025-05-08"
+			},
+			"StartDateTime": {
+				"type": "string",
+				"defaultValue": "2025-06-04T03:12:00Z"
+			},
+			"YourDynamicURL": {
+				"type": "string",
+				"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+			},
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+			},
+			"ClientKeyAkvUrl": {
+				"type": "string",
+				"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+			}
+		},
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,72 @@
+{
+	"name": "Copy Parquet files with dif type",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "input/ParquetFiles",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ADLS_Parquet_V2",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "7b36.zstd.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Sink_Parquet_Combined",
+							"SchemaName": "dbo"
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

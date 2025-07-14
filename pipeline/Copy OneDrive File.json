@@ -1,0 +1,237 @@
+{
+	"name": "Copy OneDrive File",
+	"properties": {
+		"description": "Http source",
+		"activities": [
+			{
+				"name": "Get Download URL",
+				"description": "URL:\nhttps://graph.microsoft.com/v1.0/users/0e197347-b631-4475-81d8-ed52956c2af7/drive/root:/Apps/Book.xlsx\n\nGet UserID from M365 admin center:\nhttps://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantOverview.ReactView?Microsoft_AAD_IAM_legacyAADRedirect=true\n\nShow more -> Identity -> Users -> The user -> ObjectID",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://graph.microsoft.com/v1.0/users/0e197347-b631-4475-81d8-ed52956c2af7/drive/root:/Apps/Book.xlsx",
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+						"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "Copy Binary Excel to ADLS",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Download URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@{concat('Authorization: Bearer ',activity('Get Bearer Token').output.access_token)}",
+								"type": "Expression"
+							}
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "OracleSink",
+						"writeBatchSize": 10000
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "HttpBinaryDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"downloadUrl": {
+								"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OracleTable",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy Excel Sheet to Oracle",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Download URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@{concat('Authorization: Bearer ',activity('Get Bearer Token').output.access_token)}",
+								"type": "Expression"
+							}
+						}
+					},
+					"sink": {
+						"type": "OracleSink",
+						"writeBatchSize": 10000
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OnDriveExcel",
+						"type": "DatasetReference",
+						"parameters": {
+							"DownloadURL": {
+								"value": "@activity('Get Download URL').output['@microsoft.graph.downloadUrl']",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OracleTable",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get App Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://accounts.accesscontrol.windows.net/d1becd49-3f8d-435f-8618-f112b530e54c/tokens/OAuth/2",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=46a4babd-9d6d-4516-87d4-cfdee1a2e7ef@d1becd49-3f8d-435f-8618-f112b530e54c&client_secret=',activity('Get App Client Key').output.value,'&resource=00000003-0000-0ff1-ce00-000000000000/m365x68336840.sharepoint.com@d1becd49-3f8d-435f-8618-f112b530e54c')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get App Client Key",
+				"description": "App in dif tennat so just for reference\ncannot be enabled for test in this lab",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/SPO-Tenant-AppKey/0e71f6d824944fa3a58ee63b2eeb3b03?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,27 @@
+{
+	"name": "Test Elapsed time metric",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 605
+				}
+			}
+		],
+		"policy": {
+			"elapsedTimeMetric": {
+				"duration": "0.00:10:00"
+			}
+		},
+		"folder": {
+			"name": "Monitor_Cancel_and_Re-trigger"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

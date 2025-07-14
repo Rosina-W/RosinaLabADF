@@ -1,0 +1,75 @@
+{
+	"name": "dataflow_testProjectionDatetimeFormat",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "RosinaADLS_gen2",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "RosinaADLS_gen2",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          ID as short,",
+				"          ModifiedDatetime as timestamp 'yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'',",
+				"          Value as short",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'data',",
+				"     fileName: 'input.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     dateFormats: ['MM/dd/yyyy','dd/MM/yyyy','yyyy/MM/dd','MM-dd-yyyy','yyyy-MM-dd','dd-MM-yyyy','dd.MM.yyyy','MM.dd.yyyy','yyyy.MM.dd'],",
+				"     timestampFormats: ['yyyy-MM-dd','MM/dd/yyyy','dd/MM/yyyy','yyyy/MM/dd','MM/dd/yyyy HH:mm:ss','MM-dd-yyyy','MM/dd/yyyy hh:mm:ss a','dd-MM-yyyy','MM-dd-yyyy HH:mm:ss','MM-dd-yyyy hh:mm:ss a','dd.MM.yyyy','MM.dd.yyyy','yyyy.MM.dd','yyyy.MM.dd HH:mm:ss','yyyy.MM.dd hh:mm:ss a','yyyy-MM-dd\\'T\\'HH:mm:ss','yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'','yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\'']) ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          {459825} as integer,",
+				"          {9E0B6b62Ce31B7c} as string,",
+				"          {Holmes-Herman} as string,",
+				"          {https://patton-huerta.biz/} as string,",
+				"          {Cook Islands} as string,",
+				"          {Object-based disintermediate leverage} as string,",
+				"          {1999} as short,",
+				"          Machinery as string,",
+				"          {2167} as short",
+				"     ),",
+				"     format: 'delimited',",
+				"     fileSystem: 'data',",
+				"     folderPath: 'output',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     partitionFileNames:['sinkDatetime_importedProjection.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

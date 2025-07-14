@@ -1,0 +1,26 @@
+{
+	"name": "RestService_Graph",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://graph.microsoft.com/v1.0/",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "c6129fc7-7054-42d8-8b15-4a4492081a09",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "Rosina_AKV_External",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "FabricTenant-SPN-Key"
+			},
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"tenant": "5a8e8dfb-bc71-4aa2-af2b-cdbda1390286",
+			"aadResourceId": "https://graph.microsoft.com"
+		},
+		"description": "Linus test env 365+Fabirc"
+	}
+}

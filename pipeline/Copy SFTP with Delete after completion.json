@@ -1,0 +1,93 @@
+{
+	"name": "Copy SFTP with Delete after completion",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy binary from SFTP to ADLS",
+				"description": "Adding \"includeSpecialFiles\": true, to this activity JSON for source settings\nRef: https://supportability.visualstudio.com/AzureDataFactory/_wiki/wikis/AzureDataFactory/611509/Copy-Soft-links-using-Copy-activity",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "SftpReadSettings",
+							"includeSpecialFiles": true,
+							"recursive": true,
+							"deleteFilesAfterCompletion": true,
+							"disableChunking": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Binary_SFTP",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Binary",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Delete1",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Binary_SFTP",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "RosinaADLS_gen2",
+							"type": "LinkedServiceReference"
+						},
+						"path": "stagging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "SftpReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false,
+						"disableChunking": false
+					}
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "AzureSQL_TestUpsert_SourceTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "TestUpsert_SourceTable"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

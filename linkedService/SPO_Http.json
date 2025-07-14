@@ -1,0 +1,14 @@
+{
+	"name": "SPO_Http",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "https://[site-url]/_api/web/GetFileByServerRelativeUrl('[relative-path-to-file]')/$value",
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://m365x68336840.sharepoint.com/sites/RosinaSite/_api/web/",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

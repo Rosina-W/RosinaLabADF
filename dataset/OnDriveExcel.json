@@ -1,0 +1,34 @@
+{
+	"name": "OnDriveExcel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnedriveSource",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"downloadUrl": {
+					"value": "@dataset().DownloadURL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"DownloadURL": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": {
+				"value": "@concat('Sheet1')",
+				"type": "Expression"
+			},
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

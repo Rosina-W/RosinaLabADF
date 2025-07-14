@@ -1,0 +1,23 @@
+{
+	"name": "SynapseDedicatedSQLTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SynapseDedictedSql",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "col1",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Table"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

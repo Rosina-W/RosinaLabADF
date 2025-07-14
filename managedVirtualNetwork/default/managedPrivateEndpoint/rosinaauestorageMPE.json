@@ -1,0 +1,10 @@
+{
+	"name": "rosinaauestorageMPE",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Storage/storageAccounts/rosinaauestorage",
+		"groupId": "blob",
+		"fqdns": [
+			"rosinaauestorage.blob.core.windows.net"
+		]
+	}
+}

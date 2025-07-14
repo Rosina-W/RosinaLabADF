@@ -1,0 +1,23 @@
+{
+	"name": "RosinaOracleDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=localhost;port=1521;sid=FREE;user id=C##azureuser;fetchTSWTZasTimestamp=0",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azureuser-psw"
+			}
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

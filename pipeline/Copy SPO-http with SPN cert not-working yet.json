@@ -1,0 +1,125 @@
+{
+	"name": "Copy SPO-http with SPN cert not-working yet",
+	"properties": {
+		"description": "Followed：https://github.com/Chunlong101/SharePointTips/blob/master/Get%20access%20token%20with%20a%20certificate%20to%20call%20sharepoint%20rest%20api%20and%20graph%20api/README.md",
+		"activities": [
+			{
+				"name": "Get OAuthToken with X509Cert JWT token",
+				"description": "RUN PowerShell (use AAD app)\n‪cd <PS script file path>\n.\\GetClientAssertion.ps1 -clientId 'f43557ff-9a53-430c-8054-700fde9500d8' -tenantId 'd1becd49-3f8d-435f-8618-f112b530e54c' -scope 'https://m365x68336840.sharepoint.com/.default'",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get client_assertion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-type": "application/x-www-form-urlencoded",
+						"Accept": "application/json"
+					},
+					"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+					"body": {
+						"value": "@concat('scope=https://m365x68336840.sharepoint.com/.default&client_id=f43557ff-9a53-430c-8054-700fde9500d8&grant_type=client_credentials&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&client_assertion=',activity('Get client_assertion').output.value)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get client_assertion",
+				"description": "To generate JWT token (client_assertion), follow https://github.com/Chunlong101/SharePointTips/blob/46146e6517c15e1548b196f9b3f82a5ff086b2ac/Get%20access%20token%20with%20a%20certificate%20to%20call%20sharepoint%20rest%20api%20and%20graph%20api/GetAccessTokenByCert.ps1#L2\n\nStored In Rosina-AKV\nRosinaSPO-ServicePrincipal-AADappCert-clientAssertion-JWT-token\n\n# ----- \n# Step 1: Create a self-signed certificate, you can skip this step if you already have a one\n# ----- \n\n\n$CERT_NAME = \"MyX509Cert_AAD\" # need replace\n$CERT_PATH = \"C:\\Self-AssignedX509Cert\" # need replace\n$CERT_Store = \"Cert:\\CurrentUser\\My\" # MMC >> Add/Remove Snap-ins >> Certificates >> Current User >> Personal >> Your Certificates\n$CERT_Subject = \"CN=$($CERT_NAME)\"\n\n$cert = New-SelfSignedCertificate -Subject $CERT_Subject -CertStoreLocation $CERT_Store -KeyExportPolicy Exportable -KeySpec Signature -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256 -Provider \"Microsoft Enhanced RSA and AES Cryptographic Provider\"\n\n#Set-ExecutionPolicy RemoteSigned #Unrestricted; may error due to policy,export manually\nExport-Certificate -Cert $cert -FilePath \"$CERT_PATH\\$($CERT_NAME).cer\" -Force\n\n# Private key to Base64, not used for current scenario\n$privateKey = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($cert)\n$privateKeyBytes = $privateKey.Key.Export([System.Security.Cryptography.CngKeyBlobFormat]::Pkcs8PrivateBlob)\n$privateKeyBase64 = [System.Convert]::ToBase64String($privateKeyBytes, [System.Base64FormattingOptions]::InsertLineBreaks)\n$privateKeyString = @\"\n-----BEGIN PRIVATE KEY-----\n$privateKeyBase64\n-----END PRIVATE KEY-----\n\"@\n \n# Print private key to output\nWrite-Host $privateKeyString\n\n# ----- \n# Step 2: Configure your app in azure app registrations\n# ----- \n\n<# Open Azure Portal >> App registrations >> Your app >> Configure your app with proper SharePoint/Graph permissions, upload the certifcate to Azure App #>\n\n# ----- \n# Step 3: Get the access token with the certificate to call SharePoint REST API and Graph API\n# ----- \n\n# Define the Azure AD tenant ID and app client ID\n$tenantId = \"d1becd49-3f8d-435f-8618-f112b530e54c\"  # need replace\n$clientId = \"f43557ff-9a53-430c-8054-700fde9500d8\"  # need replace\n$CERT_Store = \"Cert:\\CurrentUser\\My\" # need replace\n$CERT_NAME = \"MyX509Cert_AAD\" # need replace\n$CERT_Subject = \"CN=$($CERT_NAME)\"\n\n<# Define the certificate thumbprint\n$thumbprint = \"9a2323356ba9c2c09753a0258bff8ae722b8687b\" #\"YOUR_CERTIFICATE_THUMBPRINT\"\n$cert = Get-Item Cert:\\CurrentUser\\My\\$Thumbprint  #CurrentUser/LocalMachine\n#>\n$cert = Get-ChildItem -Path $CERT_Store | Where-Object { $_.Subject -Match $CERT_Subject } # | Select-Object FriendlyName, Thumbprint, Subject, NotBefore, NotAfter\n$scope = \"https://m365x68336840.sharepoint.com\"  # need replace\n<# for Graph api call test\n$scope=\"https://graph.microsoft.com\"\n#>\n\n# Function to generate a JWT token (client_assertion)\nfunction GenerateJWT ($cert, $clientId, $tenantId, $scope) {\n    $hash = $cert.GetCertHash()\n    $hashValue = [System.Convert]::ToBase64String($hash) -replace '\\+', '-' -replace '/', '_' -replace '='\n\n    $exp = ([DateTimeOffset](Get-Date).AddHours(1).ToUniversalTime()).ToUnixTimeSeconds()\n    $nbf = ([DateTimeOffset](Get-Date).ToUniversalTime()).ToUnixTimeSeconds()\n\n    $jti = New-Guid\n    [hashtable]$header = @{alg = \"RS256\"; typ = \"JWT\"; x5t = $hashValue }\n    [hashtable]$payload = @{aud = \"https://login.microsoftonline.com/$tenantId/oauth2/token\"; iss = \"$clientId\"; sub = \"$clientId\"; jti = \"$jti\"; exp = $Exp; Nbf = $Nbf }\n\n    $headerjson = $header | ConvertTo-Json -Compress\n    $payloadjson = $payload | ConvertTo-Json -Compress\n\n    $headerjsonbase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($headerjson)).Split('=')[0].Replace('+', '-').Replace('/', '_')\n    $payloadjsonbase64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($payloadjson)).Split('=')[0].Replace('+', '-').Replace('/', '_')\n\n    $toSign = [System.Text.Encoding]::UTF8.GetBytes($headerjsonbase64 + \".\" + $payloadjsonbase64)\n\n    $rsa = $cert.PrivateKey # -as [System.Security.Cryptography.RSACryptoServiceProvider]\n\n    $signature = [Convert]::ToBase64String($rsa.SignData($toSign, [Security.Cryptography.HashAlgorithmName]::SHA256, [Security.Cryptography.RSASignaturePadding]::Pkcs1)) -replace '\\+', '-' -replace '/', '_' -replace '='\n\n    $token = \"$headerjsonbase64.$payloadjsonbase64.$signature\"\n\n    return $token # client_assertion\n}\n\n# Get the client_assertion\n$RequestToken = GenerateJWT -cert $cert -clientId $clientId -tenantId $tenantId -scope $scope\n\n# Output the access token\n# Write-Output \"client_assertion: $AccessToken\"\n\n$RequestTokenString = @\"\n-----BEGIN client_assertion-----\n$RequestToken\n-----END client_assertion-----\n\"@\n \n# Print private key to output\nWrite-Host $RequestTokenString\n",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-AADappCert-clientAssertion-JWT-token/c877718944e9494dba3662d4a519b9fb?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Copy SPO with Cert Auth",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get OAuthToken with X509Cert JWT token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@{concat('Authorization: Bearer ', activity('Get OAuthToken with X509Cert JWT token').output.access_token)}",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SPO_file_Binary",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Binary",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

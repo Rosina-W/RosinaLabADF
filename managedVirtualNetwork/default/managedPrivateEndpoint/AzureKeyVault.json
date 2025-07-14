@@ -1,0 +1,10 @@
+{
+	"name": "AzureKeyVault",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaLabRG/providers/Microsoft.KeyVault/vaults/Rosina-AKV",
+		"groupId": "vault",
+		"fqdns": [
+			"rosina-akv.vault.azure.net"
+		]
+	}
+}

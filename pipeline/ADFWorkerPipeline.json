@@ -1,0 +1,19 @@
+{
+	"name": "ADFWorkerPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

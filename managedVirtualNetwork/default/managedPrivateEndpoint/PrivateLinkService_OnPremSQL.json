@@ -1,0 +1,10 @@
+{
+	"name": "PrivateLinkService_OnPremSQL",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Network/privateLinkServices/RosinaPrivateLinkService",
+		"groupId": "",
+		"fqdns": [
+			"rosinavm-test.rosina.com"
+		]
+	}
+}

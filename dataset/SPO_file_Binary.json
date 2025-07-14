@@ -1,0 +1,18 @@
+{
+	"name": "SPO_file_Binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SPO_Http",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "GetFileByServerRelativeUrl('/sites/RosinaSite/Shared%20Documents/MyFiles/DimEmployee.xlsx')/$value"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

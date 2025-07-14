@@ -1,0 +1,30 @@
+{
+	"name": "OnPremMySQL",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "on VM RosinaVM-22env\nlocalhost\ninstance RosinaMySQL80",
+		"annotations": [],
+		"type": "MySql",
+		"typeProperties": {
+			"server": "10.1.1.5",
+			"port": 3306,
+			"database": "rosina",
+			"username": "azureuser",
+			"sslMode": 1,
+			"useSystemTrustStore": 0,
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azureuser-psw"
+			},
+			"driverVersion": "v2"
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,220 @@
+{
+	"name": "monitor_pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check pipeline status",
+				"description": "获取当前pipeline_one管道的执行情况",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Wait for pipeline_one SLA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+							"type": "Expression"
+						}
+					},
+					"url": {
+						"value": "@concat('https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelineruns/',pipeline().parameters.pipelineRunID,'?api-version=2018-06-01')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Wait for pipeline_one SLA",
+				"description": "等待一段时间，即等待您期望的pipeline_one管道SLA时长",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			},
+			{
+				"name": "If pipeline succeeded",
+				"description": "当pipeline_one返回的状态不是“Succeeded“时，做一系列操作",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set pipeline_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(contains(variables('Pipeline_Status'),'Succeeded'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Cancel current pipeline_one",
+							"description": "用REST请求根据run ID参数cancel掉当前pipeline_one的run",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Authorization": {
+										"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+										"type": "Expression"
+									}
+								},
+								"url": {
+									"value": "@concat('https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelineruns/',pipeline().parameters.pipelineRunID,'/cancel?api-version=2018-06-01')",
+									"type": "Expression"
+								},
+								"body": "{\n'':''\n}"
+							}
+						},
+						{
+							"name": "Wait for TTL",
+							"description": "等待一定时间（例如等待IR TTL过去，以确保使用新的IR node）",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "Cancel current pipeline_one",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 60
+							}
+						},
+						{
+							"name": "Trigger new pipeline_one",
+							"description": "使用一个REST请求启动新的pipeline_one管道",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Wait for TTL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Authorization": {
+										"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+										"type": "Expression"
+									}
+								},
+								"url": "https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelines/pipeline_one/createRun?api-version=2018-06-01",
+								"body": "{\n'':''\n}"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set pipeline_status",
+				"description": "记录pipeline_one管道的执行情况",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Check pipeline status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Pipeline_Status",
+					"value": {
+						"value": "@activity('Check pipeline status').output.status",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Bearer Token",
+				"description": "https://learn.microsoft.com/en-us/community/content/azure-rest-api-how-to-create-a-bearer-token#get-the-azure-active-directory-token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"url": "https://login.microsoftonline.com/<tenantID>/oauth2/token",
+					"body": "grant_type=client_credentials&client_id=<>&client_secret=<>&resource=\nhttps://management.azure.com"
+				}
+			}
+		],
+		"parameters": {
+			"pipelineRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"Pipeline_Status": {
+				"type": "String",
+				"defaultValue": "Failed"
+			}
+		},
+		"folder": {
+			"name": "Monitor_Cancel_and_Re-trigger"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

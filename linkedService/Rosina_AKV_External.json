@@ -1,0 +1,11 @@
+{
+	"name": "Rosina_AKV_External",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://Rosina-AKV-External.vault.azure.net/"
+		}
+	}
+}

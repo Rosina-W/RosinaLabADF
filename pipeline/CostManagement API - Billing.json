@@ -1,0 +1,293 @@
+{
+	"name": "CostManagement API - Billing",
+	"properties": {
+		"description": "Billing",
+		"activities": [
+			{
+				"name": "Get APP Bearer Token",
+				"description": "RosinaAPP",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Query CostManagement",
+				"description": "Note that cost management has build-in export method which allow schdule export to Storage",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get APP Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/query?api-version=2021-10-01",
+					"body": {
+						"type": "Usage",
+						"timeframe": "MonthToDate",
+						"dataset": {
+							"granularity": "Daily",
+							"aggregation": {
+								"totalCost": {
+									"name": "PreTaxCost",
+									"function": "Sum"
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "Get Client Key",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/27dabd3fb095403dbf524816451d4185?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get APP Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:02:00",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": "{\"type\":\"Usage\",\"timeframe\":\"MonthToDate\",\"dataset\":{\"granularity\":\"Daily\",\"aggregation\":{\"totalCost\":{\"name\":\"PreTaxCost\",\"function\":\"Sum\"}}}}",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+								"type": "Expression"
+							},
+							"Content-Type": "application/json"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings",
+							"filePattern": "setOfObjects"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Rest_JSON",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_JSON",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Generate Cost Details Report",
+				"description": "https://learn.microsoft.com/en-us/rest/api/cost-management/generate-cost-details-report/create-operation?view=rest-cost-management-2023-11-01&tabs=HTTP#generatecostdetailsreportbycustomerandtimeperiod\n\nScopes to use\nhttps://learn.microsoft.com/en-us/azure/cost-management-billing/costs/understand-work-scopes",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get APP Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2022-05-01",
+					"body": {
+						"metric": "ActualCost",
+						"timePeriod": {
+							"start": "2024-08-01",
+							"end": "2024-09-01"
+						}
+					}
+				}
+			},
+			{
+				"name": "Copy Details Report to ADLS",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Generate Cost Details Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Http_CSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"URL": {
+								"value": "@activity('Generate Cost Details Report').output.manifest.blobs[0].blobLink",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Sink",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

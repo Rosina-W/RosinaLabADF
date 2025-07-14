@@ -1,0 +1,24 @@
+{
+	"name": "AzureFunction1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureFunction",
+		"typeProperties": {
+			"functionAppUrl": "https://rosinafunctionapp.azurewebsites.net",
+			"authentication": "Anonymous",
+			"functionKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "FunctionAppKey"
+			}
+		},
+		"connectVia": {
+			"referenceName": "RosinaTestSHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

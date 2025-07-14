@@ -1,0 +1,22 @@
+{
+	"name": "Rest_rosina112adlsgen2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://rosina112adlsgen2.file.core.windows.net/",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "4abad096-20e9-402a-9f8a-47e067ffc8df",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"tenant": "c4512961-29bd-4ae1-b3f7-c16c713d5089",
+			"aadResourceId": "https://storage.azure.com",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4OTZjMWJhMy03YjU4LTRkMGEtOTQxMi1iZDViN2U0ZDJjNTciLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

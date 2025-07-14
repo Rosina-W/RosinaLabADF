@@ -1,0 +1,68 @@
+{
+	"name": "Get Bearer Token Azure_My365Tenant",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get APP Bearer Token",
+				"description": "RosinaAPP",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://login.microsoftonline.com/d1becd49-3f8d-435f-8618-f112b530e54c/oauth2/v2.0/token",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=f43557ff-9a53-430c-8054-700fde9500d8&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Client Key",
+				"description": "RosinaSPO-ServicePrincipal-Key",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/0635da62812e4f5abaa925fe9d5e56f3?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,24 @@
+{
+	"name": "Rest_GraphAPI_My365env",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "REST_Graph_My365Tenant",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"relativeURL": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().relativeURL",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

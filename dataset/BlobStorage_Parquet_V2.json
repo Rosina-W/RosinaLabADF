@@ -1,0 +1,32 @@
+{
+	"name": "BlobStorage_Parquet_V2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage_aue",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string",
+				"defaultValue": "ParquetV2_FutureTime_Varchar50.parquet"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": "output",
+				"container": "data"
+			},
+			"compressionCodec": "snappy",
+			"useParquetV2": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

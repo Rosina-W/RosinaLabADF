@@ -1,0 +1,287 @@
+{
+	"name": "Copy Dynamics CRM",
+	"properties": {
+		"description": "https://make.powerapps.com/environments/Default-d1becd49-3f8d-435f-8618-f112b530e54c/entities?tenant=d1becd49-3f8d-435f-8618-f112b530e54c",
+		"activities": [
+			{
+				"name": "CRM attribute value ordered",
+				"description": "MyEntity1:\nTotal 46744 rows.\nrandomly 6191 rows has not null values.\n\ngot 12118 rows with\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n\ngot 46744 rows with \n<all-attributes />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DynamicsCrmSource",
+						"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DynamicsCRM_dataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CRM smallset attribute value ordered",
+				"description": "MyEntity_Small :\n1-15 rows value are nulls,\n16-30 rows value are not null values,\n30 rows in total\n\n",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DynamicsCrmSource",
+						"query": "<fetch>\n    <entity name=\"cr4fc_myentity_small\" >\n        <attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />      \n            <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DynamicsCRM_dataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy Dynamics All attributes ordered",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DynamicsCrmSource",
+						"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n     <all-attributes />\n     <order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DynamicsCRM_dataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set 46744_Value_Order",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "CRM attribute value ordered",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Rows_46744_Value_Order",
+					"value": {
+						"value": "@activity('CRM attribute value ordered').output.rowsRead",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set 30_Value_Order",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "CRM smallset attribute value ordered",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Rows_30_Value_Order",
+					"value": {
+						"value": "@activity('CRM smallset attribute value ordered').output.rowsRead",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set 46744_All_Order",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy Dynamics All attributes ordered",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Rows_46744_All_Order",
+					"value": {
+						"value": "@activity('Copy Dynamics All attributes ordered').output.rowsRead",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "CRM attribute value ordered Dataverse",
+				"description": "MyEntity1:\nTotal 46744 rows.\nrandomly 6191 rows has not null values.\n\ngot 12118 rows with\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n\ngot 46744 rows with \n<all-attributes />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "CommonDataServiceForAppsSource",
+						"query": "<fetch>\n    <entity name=\"cr4fc_myentity1\" >\n<attribute name=\"cr4fc_productid\" alias=\"ID\" />\n<attribute name=\"cr4fc_productvalue\" alias=\"Value\" />\n<order attribute=\"cr4fc_productvalue\" descending=\"true\" />\n      <filter>\n      <condition attribute=\"modifiedon\" operator=\"gt\" value=\"2024-06-18 16:19:11\" />\n    </filter>\n    </entity>\n</fetch>"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DataverseEntity",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"variables": {
+			"Rows_46744_Value_Order": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"Rows_30_Value_Order": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"Rows_46744_All_Order": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"results": {
+				"type": "Array"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

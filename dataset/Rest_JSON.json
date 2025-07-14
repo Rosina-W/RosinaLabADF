@@ -1,0 +1,13 @@
+{
+	"name": "Rest_JSON",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RestCostManagement",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

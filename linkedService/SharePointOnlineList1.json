@@ -1,0 +1,27 @@
+{
+	"name": "SharePointOnlineList1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "https://github.com/Chunlong101/SharePointTips/blob/master/Get%20access%20token%20with%20a%20certificate%20to%20call%20sharepoint%20rest%20api%20and%20graph%20api/README.md",
+		"annotations": [],
+		"type": "SharePointOnlineList",
+		"typeProperties": {
+			"siteUrl": "https://m365x68336840.sharepoint.com/sites/RosinaSite",
+			"tenantId": "d1becd49-3f8d-435f-8618-f112b530e54c",
+			"servicePrincipalId": "f43557ff-9a53-430c-8054-700fde9500d8",
+			"servicePrincipalCredentialType": "ServicePrincipalCert",
+			"servicePrincipalEmbeddedCert": {
+				"type": "SecureString",
+				"value": "**********"
+			},
+			"servicePrincipalEmbeddedCertPassword": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azureuser-psw"
+			}
+		}
+	}
+}

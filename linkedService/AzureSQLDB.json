@@ -1,0 +1,20 @@
+{
+	"name": "AzureSQLDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "rosina-azsql/RosinaSampleDB",
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=rosina-azsql.database.windows.net;Initial Catalog=RosinaSampleDB;User ID=azureuser",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azureuser-psw"
+			}
+		}
+	}
+}

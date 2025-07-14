@@ -1,0 +1,18 @@
+{
+	"name": "SalesforceV1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Salesforce",
+		"typeProperties": {
+			"environmentUrl": "https://datamovement-dev-ed.my.salesforce.com/",
+			"username": "datatransfersh@live.com",
+			"apiVersion": "54.0",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1OWFlMWZmNC03NDkwLTRhNTUtYWIyMy1hMTEzYjQwZmI2ZGYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

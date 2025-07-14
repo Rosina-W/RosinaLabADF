@@ -1,0 +1,106 @@
+{
+	"name": "pipeline_one1",
+	"properties": {
+		"description": "pipeline_one管道的第一个活动开始后（或并行也可以）使用一个Web REST request启动一个monitor_pipeline，并将当前管道的pipeline run ID传递为monitor_pipeline的管道参数。",
+		"activities": [
+			{
+				"name": "pipeline_one first activity",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			},
+			{
+				"name": "pipeline_one other activities",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "pipeline_one first activity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 605
+				}
+			},
+			{
+				"name": "Trigger monitor pipeline",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "pipeline_one first activity",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@concat(activity('Get Bearer Token').output.token_type,' ',activity('Get Bearer Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": "https://management.azure.com/subscriptions/<subid>/resourceGroups/<rgname>/providers/Microsoft.DataFactory/factories/<adfname>/pipelines/monitor_pipeline/createRun?api-version=2018-06-01",
+					"body": {
+						"value": "@concat('{\"pipelineRunID\":\"',pipeline().RunId,'\"}')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"url": "https://login.microsoftonline.com/<tenantID>/oauth2/token",
+					"body": "grant_type=client_credentials&client_id=<>&client_secret=<>&resource=\nhttps://management.azure.com"
+				}
+			}
+		],
+		"policy": {
+			"elapsedTimeMetric": {
+				"duration": "0.00:10:00"
+			}
+		},
+		"folder": {
+			"name": "Monitor_Cancel_and_Re-trigger"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

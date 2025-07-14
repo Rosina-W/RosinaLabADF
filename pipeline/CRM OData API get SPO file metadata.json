@@ -1,0 +1,179 @@
+{
+	"name": "CRM OData API get SPO file metadata",
+	"properties": {
+		"description": "This will not work for \"sharepointdocuments\" by-design, CRM API has limitation that cannot fetch multi-item, the result will be emplty. If use fetch query. will see 401 failure. CRM team suggest cx to use other methods instead of Odata.",
+		"activities": [
+			{
+				"name": "GraphAPI list children works",
+				"description": "GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root:/{path-relative-to-root}:/children\n\nhttps://graph.microsoft.com/v1.0/drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/Shared%20Documents/MyFiles:/children\n",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat('https://graph.microsoft.com/v1.0/drives/',pipeline().parameters.DriverID,pipeline().parameters.FolderPath,':/children')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": {
+							"value": "@pipeline().parameters.TenantID",
+							"type": "Expression"
+						},
+						"username": {
+							"value": "@pipeline().parameters.ClientID",
+							"type": "Expression"
+						},
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "Get sharepointdocuments",
+				"description": "CRM API has limitation that cannot fetch multi-item, the result will be emplty",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Dynamics API Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get Dynamics API Token').output.access_token)",
+							"type": "Expression"
+						}
+					},
+					"url": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/sharepointdocuments"
+				}
+			},
+			{
+				"name": "Get Dynamics API Token",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Application Client Key from AKV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/',pipeline().parameters.TenantID,'/oauth2/v2.0/token')",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=',pipeline().parameters.ClientID,'&client_secret=',activity('Get Application Client Key from AKV').output.value,'&scope=',pipeline().parameters.YourDynamicURL,'/.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Application Client Key from AKV",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat(pipeline().parameters.ClientKeyAkvUrl,'?api-version=7.0')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"YourDynamicURL": {
+				"type": "string",
+				"defaultValue": "https://org1032cddf.crm6.dynamics.com"
+			},
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "d1becd49-3f8d-435f-8618-f112b530e54c"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "f43557ff-9a53-430c-8054-700fde9500d8"
+			},
+			"ClientKeyAkvUrl": {
+				"type": "string",
+				"defaultValue": "https://rosina-akv.vault.azure.net/secrets/RosinaSPO-ServicePrincipal-Key/9effa7ff7c254afbbb1beb5b8d98f10e"
+			},
+			"DriverID": {
+				"type": "string",
+				"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+			},
+			"FolderPath": {
+				"type": "string",
+				"defaultValue": "/root:/MyFiles"
+			}
+		},
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

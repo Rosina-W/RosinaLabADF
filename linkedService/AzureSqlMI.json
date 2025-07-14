@@ -1,0 +1,20 @@
+{
+	"name": "AzureSqlMI",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "rosina-sqlmi",
+		"annotations": [],
+		"type": "AzureSqlMI",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=rosina-sqlmi.public.ec0eedb99a74.database.windows.net,3342;Initial Catalog=RosinaSampleDB;User ID=azureuser",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SQLMI-azureuser-PSW"
+			}
+		}
+	}
+}

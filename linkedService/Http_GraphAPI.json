@@ -1,0 +1,20 @@
+{
+	"name": "Http_GraphAPI",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "URL IN LS:\nhttps://graph.microsoft.com/v1.0/drives/{drive-id}",
+		"parameters": {
+			"driverID": {
+				"type": "string",
+				"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+			}
+		},
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "@{concat('https://graph.microsoft.com/v1.0/drives/',linkedService().driverID)}",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

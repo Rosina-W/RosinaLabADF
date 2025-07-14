@@ -1,0 +1,20 @@
+{
+	"name": "SalesforceLinus",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "E9626FEB100D1E6A2DF4A76B3F686624D7694833DCB1A13486B530C71B98FE24",
+		"annotations": [],
+		"type": "SalesforceV2",
+		"typeProperties": {
+			"environmentUrl": "https://datamovement-dev-ed.my.salesforce.com/",
+			"clientId": "3MVG9fMtCkV6eLhcwZpJZTjXp4aoCeKzffeGchTQ3Mz8LFeJGUc7TQ0fOxGoLffGf.HQg4pN_xcw63Rshh5w.",
+			"apiVersion": "63.0",
+			"authenticationType": "OAuth2ClientCredential",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI0YzkxN2JkOS1jMDEyLTRjMWMtYWQ0ZS1mOWNlZjM5OTM0ODgiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,33 @@
+{
+	"name": "Http_CSV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Http_CostDetails",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"URL": {
+					"value": "@dataset().URL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"URL": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

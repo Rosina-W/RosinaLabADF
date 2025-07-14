@@ -1,0 +1,32 @@
+{
+	"name": "SnowflakeTable_ROSINASNOWFLAKE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Snowflake_EN56775",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SnowflakeV2Table",
+		"schema": [
+			{
+				"name": "CREATEDWHEN",
+				"type": "TIMESTAMP_NTZ"
+			},
+			{
+				"name": "ID",
+				"type": "NUMBER",
+				"precision": 38,
+				"scale": 0
+			},
+			{
+				"name": "ADMITDTM",
+				"type": "VARCHAR"
+			}
+		],
+		"typeProperties": {
+			"schema": "DBO",
+			"table": "TESTFUTURETIME2"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

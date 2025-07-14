@@ -1,0 +1,39 @@
+{
+	"name": "OnPrem_SQL",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"ServerName": {
+				"type": "string",
+				"defaultValue": "10.1.1.4\\ROSINASQL"
+			},
+			"DBName": {
+				"type": "string",
+				"defaultValue": "AdventureWorks2019"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "@{linkedService().ServerName}",
+			"database": "@{linkedService().DBName}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "azureuser",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "Rosina_AKV_External",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azureuserPSW"
+			},
+			"connectTimeout": "180"
+		},
+		"connectVia": {
+			"referenceName": "Rosina-SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

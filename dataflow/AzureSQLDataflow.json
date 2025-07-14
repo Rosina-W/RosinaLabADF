@@ -1,0 +1,306 @@
+{
+	"name": "AzureSQLDataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "AzureSQLDB",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SalesOrderDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference"
+					},
+					"name": "SalesOrderHeader",
+					"description": "Import data from Azure_SQL_Table"
+				},
+				{
+					"dataset": {
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference"
+					},
+					"name": "Customer"
+				},
+				{
+					"dataset": {
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference"
+					},
+					"name": "Product"
+				},
+				{
+					"dataset": {
+						"referenceName": "Azure_SQL_Table",
+						"type": "DatasetReference"
+					},
+					"name": "ProductCategory"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "RosinaADLS_gen2_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joinSales"
+				},
+				{
+					"name": "joinCustomer"
+				},
+				{
+					"name": "aggregateByCustomer"
+				},
+				{
+					"name": "sortCustomerValue"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "aggregateSalerTotalSales"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "joinSalesDetail"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "sortProductPerformance"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          SalesOrderDetailID as integer,",
+				"          OrderQty as short,",
+				"          ProductID as integer,",
+				"          UnitPrice as decimal(19,4),",
+				"          UnitPriceDiscount as decimal(19,4),",
+				"          LineTotal as decimal(38,6),",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'Select * from [SalesLT].[SalesOrderDetail]',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> SalesOrderDetail",
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          RevisionNumber as integer,",
+				"          OrderDate as timestamp,",
+				"          DueDate as timestamp,",
+				"          ShipDate as timestamp,",
+				"          Status as integer,",
+				"          OnlineOrderFlag as boolean,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as integer,",
+				"          ShipToAddressID as integer,",
+				"          BillToAddressID as integer,",
+				"          ShipMethod as string,",
+				"          CreditCardApprovalCode as string,",
+				"          SubTotal as decimal(19,4),",
+				"          TaxAmt as decimal(19,4),",
+				"          Freight as decimal(19,4),",
+				"          TotalDue as decimal(19,4),",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select * from [SalesLT].[SalesOrderHeader]',",
+				"     format: 'query') ~> SalesOrderHeader",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select * from [SalesLT].[Customer]',",
+				"     format: 'query') ~> Customer",
+				"source(output(",
+				"          ProductID as integer,",
+				"          Name as string,",
+				"          ProductNumber as string,",
+				"          Color as string,",
+				"          StandardCost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          Size as string,",
+				"          Weight as decimal(8,2),",
+				"          ProductCategoryID as integer,",
+				"          ProductModelID as integer,",
+				"          SellStartDate as timestamp,",
+				"          SellEndDate as timestamp,",
+				"          DiscontinuedDate as timestamp,",
+				"          ThumbNailPhoto as binary,",
+				"          ThumbnailPhotoFileName as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select * from [SalesLT].[Product]',",
+				"     format: 'query') ~> Product",
+				"source(output(",
+				"          ProductCategoryID as integer,",
+				"          ParentProductCategoryID as integer,",
+				"          Name as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select * from [SalesLT].[ProductCategory]',",
+				"     format: 'query') ~> ProductCategory",
+				"SalesOrderDetail, SalesOrderHeader join(SalesOrderDetail@SalesOrderID == SalesOrderHeader@SalesOrderID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinSales",
+				"joinSales, Customer join(SalesOrderHeader@CustomerID == Customer@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinCustomer",
+				"joinCustomer aggregate(groupBy(Customer@CustomerID),",
+				"     TotalSales = sum(LineTotal),",
+				"          AverageOrderValue = avg(LineTotal)) ~> aggregateByCustomer",
+				"join2 sort(desc(TotalSales, false)) ~> sortCustomerValue",
+				"aggregateByCustomer, Customer join(aggregateByCustomer@CustomerID == Customer@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 derive(CustomerFullName = concat(toString(FirstName),'·',toString(LastName))) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          CustomerID = aggregateByCustomer@CustomerID,",
+				"          TotalSales,",
+				"          AverageOrderValue,",
+				"          CustomerID = Customer@CustomerID,",
+				"          CompanyName,",
+				"          SalesPerson,",
+				"          PasswordSalt,",
+				"          ModifiedDate,",
+				"          CustomerFullName",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 aggregate(groupBy(SalesPerson),",
+				"     SalerTotalSales = sum(TotalSales)) ~> aggregateSalerTotalSales",
+				"aggregateSalerTotalSales, select1 join(aggregateSalerTotalSales@SalesPerson == select1@SalesPerson,",
+				"     joinType:'outer',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"Product, SalesOrderDetail join(Product@ProductID == SalesOrderDetail@ProductID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinSalesDetail",
+				"joinSalesDetail, ProductCategory join(Product@ProductCategoryID == ProductCategory@ProductCategoryID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"join3 aggregate(groupBy(Product@ProductCategoryID,",
+				"          Product@ProductID),",
+				"     TotalQuantitySold = sum(OrderQty),",
+				"          TotalSales = sum(LineTotal)) ~> aggregate1",
+				"aggregate1 sort(desc(TotalQuantitySold, false)) ~> sortProductPerformance",
+				"sortCustomerValue sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          bookID as string,",
+				"          title as string,",
+				"          authors as string,",
+				"          average_rating as string,",
+				"          isbn as string,",
+				"          isbn13 as string,",
+				"          language_code as string,",
+				"          {  num_pages} as string,",
+				"          ratings_count as string,",
+				"          text_reviews_count as string,",
+				"          publication_date as string,",
+				"          publisher as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1",
+				"sortProductPerformance sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          bookID as string,",
+				"          title as string,",
+				"          authors as string,",
+				"          average_rating as string,",
+				"          isbn as string,",
+				"          isbn13 as string,",
+				"          language_code as string,",
+				"          {  num_pages} as string,",
+				"          ratings_count as string,",
+				"          text_reviews_count as string,",
+				"          publication_date as string,",
+				"          publisher as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink2"
+			]
+		}
+	}
+}

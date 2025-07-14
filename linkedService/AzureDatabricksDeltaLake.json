@@ -1,0 +1,17 @@
+{
+	"name": "AzureDatabricksDeltaLake",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLake",
+		"typeProperties": {
+			"domain": "https://adb-1291252598671838.18.azuredatabricks.net",
+			"clusterId": "0107-023713-cezh7qea",
+			"workspaceResourceId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Databricks/workspaces/RosinaADB"
+		},
+		"connectVia": {
+			"referenceName": "ManagedVNetIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,197 @@
+{
+	"name": "Copy SPO-GraphAPI file",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get SPO site file Download URL",
+				"description": "URL:\nGET https://graph.microsoft.com/v1.0/sites/{site-id}/drives/{drive-id}/root:/{file-path}\nAuthorization: Bearer {access_token}\n\nRef https://learn.microsoft.com/en-us/graph/api/site-getbypath?view=graph-rest-1.0\n\nGet UserID from M365 admin center:\nhttps://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantOverview.ReactView?Microsoft_AAD_IAM_legacyAADRedirect=true\n\nShow more -> Identity -> Users -> The user -> ObjectID",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat('https://graph.microsoft.com/v1.0/sites/',pipeline().parameters.SiteID,'/drives/',pipeline().parameters.DriverID,'/root:/',pipeline().parameters.FilePath)",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+						"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "GraphAPI Get SiteID",
+				"description": "GET https://graph.microsoft.com/v1.0/sites/{hostname}:/{site-path}\nAuthorization: Bearer {access_token}\n\n{hostname}: SharePoint站点的主机名，例如yourdomain.sharepoint.com\n{site-path}: SharePoint站点的路径，例如/sites/yoursite",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://graph.microsoft.com/v1.0/sites/m365x68336840.sharepoint.com:/sites/RosinaSite",
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+						"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "GraphAPI Get DriverID",
+				"description": "GET https://graph.microsoft.com/v1.0/sites/{site-id}/drives\nAuthorization: Bearer {access_token}\nResponse Example:\n{\n    \"value\": [\n        {\n            \"id\": \"drive-id\",\n            \"name\": \"Documents\",\n            ...\n        }\n    ]\n}\n",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "GraphAPI Get SiteID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat('https://graph.microsoft.com/v1.0/sites/',activity('GraphAPI Get SiteID').output.id,'/drives')",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": "d1becd49-3f8d-435f-8618-f112b530e54c",
+						"username": "f43557ff-9a53-430c-8054-700fde9500d8",
+						"resource": "https://graph.microsoft.com/",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "RosinaAKV",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "RosinaSPO-ServicePrincipal-Key"
+						}
+					}
+				}
+			},
+			{
+				"name": "Copy Graph SPO file to ADLS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get SPO site file Download URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "HttpBinaryDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"downloadUrl": {
+								"value": "@activity('Get SPO site file Download URL').output['@microsoft.graph.downloadUrl']",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Binary",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"SiteID": {
+				"type": "string",
+				"defaultValue": "m365x68336840.sharepoint.com,dc84c581-b5cf-48ed-bc7d-7c98ef9452ef,3bc450f7-e42f-4973-a025-4ff057d06449"
+			},
+			"DriverID": {
+				"type": "string",
+				"defaultValue": "b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2"
+			},
+			"FilePath": {
+				"type": "string",
+				"defaultValue": "MyFiles/Book.xlsx"
+			}
+		},
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

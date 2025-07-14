@@ -1,0 +1,93 @@
+{
+	"name": "Parse_GraphApiResponse",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "REST_Graph_My365Tenant",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "RosinaADLS_gen2",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "flatten1"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          body as ({@odata.context} as string, value as ({@microsoft.graph.downloadUrl} as string, cTag as string, createdBy as (user as (displayName as string, email as string, id as string)), createdDateTime as timestamp, eTag as string, file as (hashes as (quickXorHash as string), mimeType as string), fileSystemInfo as (createdDateTime as timestamp, lastModifiedDateTime as timestamp), id as string, lastModifiedBy as (user as (displayName as string, email as string, id as string)), lastModifiedDateTime as timestamp, name as string, parentReference as (driveId as string, driveType as string, id as string, name as string, path as string, siteId as string), shared as (scope as string), size as integer, webUrl as string)[]),",
+				"          headers as [string,string]",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'rest',",
+				"     timeout: 30,",
+				"     requestInterval: 0,",
+				"     entity: 'drives/b!gcWE3M-17Ui8fXyY75RS7_dQxDsv5HNJoCVP8FfQZEkVoSmarC4ARKgTnYUZs-p2/root:/MyFiles:/children',",
+				"     httpMethod: 'GET',",
+				"     paginationRules: ['supportRFC5988' -> 'true'],",
+				"     responseFormat: ['type' -> 'json', 'documentForm' -> 'documentPerLine']) ~> source1",
+				"source1 foldDown(unroll(body.value, body.value),",
+				"     mapColumn(",
+				"          createdBy = body.value.createdBy,",
+				"          createdDateTime = body.value.createdDateTime,",
+				"          file = body.value.file,",
+				"          id = body.value.id,",
+				"          lastModifiedBy = body.value.lastModifiedBy,",
+				"          lastModifiedDateTime = body.value.lastModifiedDateTime,",
+				"          name = body.value.name,",
+				"          parentReference = body.value.parentReference,",
+				"          size = body.value.size,",
+				"          webUrl = body.value.webUrl",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"flatten1 select(mapColumn(",
+				"          id,",
+				"          name,",
+				"          path = parentReference.path,",
+				"          size,",
+				"          createdDateTime,",
+				"          lastModifiedDateTime,",
+				"          parentReference_driverId = parentReference.driveId,",
+				"          parentReference_siteId = parentReference.siteId,",
+				"          webUrl",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'data',",
+				"     folderPath: 'output',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     partitionFileNames:['sink_Dataflow_GraphAPI_SPOFileMetadata.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

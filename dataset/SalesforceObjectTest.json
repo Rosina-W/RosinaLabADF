@@ -1,0 +1,16 @@
+{
+	"name": "SalesforceObjectTest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesforceLinus",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SalesforceV2Object",
+		"schema": [],
+		"typeProperties": {
+			"objectApiName": "TimeTest__c"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

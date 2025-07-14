@@ -1,0 +1,17 @@
+{
+	"name": "Blob_RosinaExternalStorage",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "if failed, check storage side -> configuration -> Allow storage account key access",
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": "DefaultEndpointsProtocol=https;AccountName=rosinaexternalstorage;EndpointSuffix=core.windows.net;",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEUxM0E3Q0M4LTNBRkEtNDk2MS1BRjA5LTM5RTcxRkVGMTAzMV9iMjcxMzE3MC0yZTM4LTRiZmItYmZkOS00OGI3ZGZmMjhiYzIiDQp9"
+		},
+		"connectVia": {
+			"referenceName": "ManagedVNetIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

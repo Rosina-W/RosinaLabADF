@@ -1,0 +1,33 @@
+{
+	"name": "pipeline-functionapp",
+	"properties": {
+		"description": "{\n    \"name\": \"pipeline1\",\n    \"properties\": {\n        \"activities\": [\n            {\n                \"name\": \"Web1\",\n                \"type\": \"WebActivity\",\n                \"dependsOn\": [],\n                \"policy\": {\n                    \"timeout\": \"0.12:00:00\",\n                    \"retry\": 0,\n                    \"retryIntervalInSeconds\": 30,\n                    \"secureOutput\": false,\n                    \"secureInput\": false\n                },\n                \"userProperties\": [],\n                \"typeProperties\": {\n                    \"enableTLS13\":true,\n                    \"method\": \"GET\",\n                    \"url\": \"https://rosinafunctionapptest.azurewebsites.net/api/http_trigger1?name=Rosina\",\n                    \"connectVia\": {\n                        \"referenceName\": \"Rosina-SHIR\",\n                        \"type\": \"IntegrationRuntimeReference\"\n                    }\n                }\n            }\n        ],\n        \"annotations\": []\n    }\n}",
+		"activities": [
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosinafunctionapptest.azurewebsites.net/api/http_trigger1?name=Rosina",
+					"connectVia": {
+						"referenceName": "Rosina-SHIR",
+						"type": "IntegrationRuntimeReference"
+					},
+					"enableTLS13": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

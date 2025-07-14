@@ -1,0 +1,24 @@
+{
+	"name": "Dataverse",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "https://admin.powerplatform.microsoft.com/environments/8878b571-6f50-ef11-bfdf-0022489421c1/appusers",
+		"annotations": [],
+		"type": "CommonDataServiceForApps",
+		"typeProperties": {
+			"deploymentType": "Online",
+			"serviceUri": "https://org1032cddf.crm6.dynamics.com",
+			"authenticationType": "AADServicePrincipal",
+			"servicePrincipalId": "f43557ff-9a53-430c-8054-700fde9500d8",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "RosinaAKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "RosinaSPO-ServicePrincipal-Key"
+			},
+			"servicePrincipalCredentialType": "ServicePrincipalKey"
+		}
+	}
+}

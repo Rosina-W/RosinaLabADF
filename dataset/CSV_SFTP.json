@@ -1,0 +1,37 @@
+{
+	"name": "CSV_SFTP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sftp_Rosina22env",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"fileName": "Test.csv",
+				"folderPath": "/C:/Test"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "A",
+				"type": "String"
+			},
+			{
+				"name": "B",
+				"type": "String"
+			},
+			{
+				"name": "C",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

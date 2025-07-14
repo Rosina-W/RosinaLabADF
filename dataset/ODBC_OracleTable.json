@@ -1,0 +1,16 @@
+{
+	"name": "ODBC_OracleTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ODBC_Oracle",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "OdbcTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "\"C##AZUREUSER\".\"TIME_TABLE\""
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

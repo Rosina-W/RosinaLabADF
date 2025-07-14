@@ -1,0 +1,14 @@
+{
+	"name": "Rest_AzStorage",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://rosinaauestorage.file.core.windows.net/",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "ManagedServiceIdentity",
+			"aadResourceId": "https://storage.azure.com"
+		}
+	}
+}

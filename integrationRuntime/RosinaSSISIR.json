@@ -1,0 +1,41 @@
+{
+	"name": "RosinaSSISIR",
+	"properties": {
+		"type": "Managed",
+		"typeProperties": {
+			"computeProperties": {
+				"location": "Australia East",
+				"nodeSize": "Standard_D4_v3",
+				"numberOfNodes": 1,
+				"maxParallelExecutionsPerNode": 4
+			},
+			"ssisProperties": {
+				"catalogInfo": {
+					"catalogServerEndpoint": "rosina-sqlmi.ec0eedb99a74.database.windows.net",
+					"catalogAdminUserName": "azureuser",
+					"catalogAdminPassword": {
+						"type": "SecureString",
+						"value": "**********"
+					},
+					"catalogPricingTier": null
+				},
+				"edition": "Standard",
+				"licenseType": "BasePrice",
+				"dataProxyProperties": {
+					"connectVia": {
+						"type": "IntegrationRuntimeReference",
+						"referenceName": "Rosina-SHIR"
+					},
+					"stagingLinkedService": {
+						"type": "LinkedServiceReference",
+						"referenceName": "SSISIR_staggingBlob"
+					},
+					"path": "stagging"
+				}
+			},
+			"customerVirtualNetwork": {
+				"subnetId": "/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/rosinalabrg/providers/Microsoft.Network/virtualNetworks/RosinaLabRG-VNet/subnets/SSISIR-subnet"
+			}
+		}
+	}
+}

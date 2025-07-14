@@ -1,0 +1,12 @@
+{
+	"name": "OData1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "OData",
+		"typeProperties": {
+			"url": "https://org1032cddf.crm6.dynamics.com/api/data/v9.2/",
+			"authenticationType": "Anonymous"
+		}
+	}
+}

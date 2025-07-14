@@ -1,0 +1,32 @@
+{
+	"name": "ADLS_Parquet_V2",
+	"properties": {
+		"description": ",\n            \"useParquetV2\": true",
+		"linkedServiceName": {
+			"referenceName": "RosinaADLS_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": "input/ParquetFiles",
+				"fileSystem": "data"
+			},
+			"compressionCodec": "snappy",
+			"useParquetV2": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

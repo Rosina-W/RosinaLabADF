@@ -1,0 +1,222 @@
+{
+	"name": "Call Fabric Notebook API",
+	"properties": {
+		"activities": [
+			{
+				"name": "POST Run Fabric Notebook",
+				"description": "https://learn.microsoft.com/en-us/fabric/data-engineering/notebook-public-api",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Fabric Account Token from AKV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get Fabric Account Token from AKV').output.value)",
+							"type": "Expression"
+						}
+					},
+					"turnOffAsync": true,
+					"url": "https://api.fabric.microsoft.com/v1/workspaces/ff84522d-4fb4-4565-8028-1ba8802e22eb/items/11b73e80-fda5-4902-96bf-40da6c147c70/jobs/instances?jobType=RunNotebook",
+					"body": {
+						"executionData": {
+							"configuration": {
+								"useStarterPool": true
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "Get Fabric Account Token from AKV",
+				"description": "This token will exprire every 1 hour, run Fabric notebook to get it again. Or you can save it to any DB and query it out to use.\n\n### Notebook Python Code as below shared by lei.sun\naccess_token = mssparkutils.credentials.getToken(\"pbi\") \nprint(\"access token\" + access_token) \n\n# (NOT suggested to share to cx) \n# By-design token will not show-up，can show with below. Then, in notepad++, replace all '','' as empty string ''\na= list(access_token)\nprint(a)\n",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/FabircAccountAccessToken/94f21fff74424e4ab47c60d3207de0b1?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Until Notebook Completed or Failed",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set NotebookResult",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(equals(variables('NotebookResult'),'Completed'),equals(variables('NotebookResult'),'Failed'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Wait for Notebook to start run",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 60
+							}
+						},
+						{
+							"name": "Get Notebook Execution Result",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Wait for Notebook to start run",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "@concat('Bearer ',activity('Get Fabric Account Token from AKV').output.value)",
+										"type": "Expression"
+									}
+								},
+								"url": {
+									"value": "@activity('POST Run Fabric Notebook').output.ADFWebActivityResponseHeaders.Location",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Update NotebookResult",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get Notebook Execution Result",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "NotebookResult",
+								"value": {
+									"value": "@activity('Get Notebook Execution Result').output.status",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "Set NotebookResult",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "POST Run Fabric Notebook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "NotebookResult",
+					"value": "Started"
+				}
+			},
+			{
+				"name": "If Notebook Run Completed",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Until Notebook Completed or Failed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('NotebookResult'),'Completed')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Execute Fabric Notebook result is Failed",
+								"errorCode": "Failed Notebook Run"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"NotebookResult": {
+				"type": "String"
+			},
+			"NotebookLocationURL": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:46Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

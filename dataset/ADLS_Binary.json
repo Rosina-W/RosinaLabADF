@@ -1,0 +1,19 @@
+{
+	"name": "ADLS_Binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RosinaADLS_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "output/CopyWithDeletion",
+				"fileSystem": "data"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

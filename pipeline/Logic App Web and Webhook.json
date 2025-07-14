@@ -1,0 +1,211 @@
+{
+	"name": "Logic App Web and Webhook",
+	"properties": {
+		"activities": [
+			{
+				"name": "WebHook1",
+				"type": "WebHook",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>",
+					"method": "POST",
+					"body": {
+						"name": "Rosina"
+					},
+					"timeout": "00:10:00",
+					"reportStatusOnCallBack": true,
+					"disableCertValidation": true
+				}
+			},
+			{
+				"name": "Get APP Bearer Token",
+				"description": "RosinaAPP",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Client Key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Wait1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"disableCertValidation": true,
+					"url": "https://login.microsoftonline.com/16b3c013-d300-468d-ac64-7eda0820b6d3/oauth2/v2.0/token",
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=6a26d4de-e457-44fa-b5cf-04a81934fa8d&client_secret=',activity('Get Client Key').output.value,'&scope=https%3A%2F%2Fmanagement.azure.com%2F.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Client Key",
+				"description": "<akv-url>?api-version=7.0",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosina-akv.vault.azure.net/secrets/RosinaAppKey/8ccfa8ba5ee14a49be086527d1807707?api-version=7.0",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "Trigger Logic App",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp-simpleTest/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>"
+				}
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "Trigger Logic App",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 15
+				}
+			},
+			{
+				"name": "If Result is Failed",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Logic App Result",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Get Logic App Result').output.properties.status,'Succeeded'))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Fail1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Logic App Not Succeeded",
+								"errorCode": "na"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Logic App Result",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get APP Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('Get APP Bearer Token').output.access_token)",
+							"type": "Expression"
+						}
+					},
+					"url": {
+						"value": "@concat('https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/resourceGroups/RosinaExternalResources/providers/Microsoft.Web/sites/RosinaLogicApp/hostruntime/runtime/webhooks/workflow/api/management/workflows/rosinaLogicApp-simpleTest/runs/',activity('Trigger Logic App').output.Response,'?api-version=2024-04-01')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Trigger Long Logic App run",
+				"description": "HTTP request timeout: 10min\nLogic App side need to add an response task to enable Asynchronous response\n",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://rosinalogicapp.azurewebsites.net:443/api/rosinaLogicApp/triggers/When_a_HTTP_request_is_received/invoke?api-version=2022-05-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=<sig>"
+				}
+			}
+		],
+		"folder": {
+			"name": "API Tests"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,13 @@
+{
+	"name": "RestCostManagement",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://management.azure.com/subscriptions/ab07652c-2d4b-4317-a8a7-cfee69ca8c91/providers/Microsoft.CostManagement/query?api-version=2021-10-01",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "On_PremSQL_ManagedVNetIR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "OnPremSQL_ManagedVNetConnector",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MyTable_CsvSink"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

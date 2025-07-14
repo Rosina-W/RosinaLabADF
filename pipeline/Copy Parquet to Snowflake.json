@@ -1,0 +1,122 @@
+{
+	"name": "Copy Parquet to Snowflake",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data to ParquetV2",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OnPrem_SQL_Table",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "Production",
+							"TableName": "ProductCategory"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BlobStorage_Parquet_V2",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "ParquetV2_FutureTime_Varchar50.parquet"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy ParquetV2 to Snowflake",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy data to ParquetV2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SnowflakeV2Sink",
+						"importSettings": {
+							"type": "SnowflakeImportCopyCommand"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BlobStorage_Parquet_V2",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "ParquetV2_FutureTime_Varchar50.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SnowflakeTable_ROSINASNOWFLAKE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:49Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

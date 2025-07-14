@@ -1,0 +1,35 @@
+{
+	"name": "HDI",
+	"properties": {
+		"activities": [
+			{
+				"name": "Hive1",
+				"type": "HDInsightHive",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"scriptPath": "codes/hello_world_with_param.hql",
+					"getDebugInfo": "None",
+					"scriptLinkedService": {
+						"referenceName": "ADLS_HDInsightclusterStorage",
+						"type": "LinkedServiceReference"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "RosinaHDIcluster",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T03:27:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
